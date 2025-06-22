@@ -72,4 +72,9 @@ Use the following `\copy` command in `psql`:
 
 ## 🧑‍💻 Author
 
-Designed and implemented by **Pailiav** for a full-stack e-commerce application project.
+Designed and implemented by **Phal Sovandy** for a full-stack e-commerce application project.
+
+---
+
+## 📂 Data Source
+The dataset used in this project was obtained from the [eCommerce dataset samples by Luminati](https://github.com/luminati-io/eCommerce-dataset-samples.git).
