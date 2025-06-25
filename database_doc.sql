@@ -4,8 +4,6 @@ CREATE DATABASE ecommercewebsite;
 -- Connect with: \c ecommercewebsite
 
 -- Convert from raw data of CSV file to PostgreSQL data form
-DROP TABLE IF EXISTS rawData;
-
 CREATE TABLE rawData (
     timestamp TIMESTAMP,
     title TEXT,
@@ -202,7 +200,6 @@ CREATE TABLE customer_locations(
     address_line1 TEXT,
     address_line2 TEXT
 );
-
 
 -- Customer order
 CREATE TABLE orders (
@@ -579,7 +576,7 @@ RETURNS TABLE (
     order_date TIMESTAMP,
     seller_name TEXT,
     delivery_option TEXT,
-    total_items BIGINT 
+    total_items BIGINT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -587,14 +584,14 @@ BEGIN
         o.order_id,
         o.created_at AS order_date,
         s.seller_name,
-        do.option_name AS delivery_option,
+        dopt.option_name AS delivery_option,
         SUM(oi.quantity) AS total_items
     FROM orders o
     JOIN sellers s ON o.seller_id = s.seller_id
-    JOIN delivery_options do ON o.delivery_id = do.delivery_id
+    JOIN delivery_options dopt ON o.delivery_id = dopt.delivery_id
     JOIN ordered_items oi ON o.order_id = oi.order_id
     WHERE o.customer_id = p_customer_id
-    GROUP BY o.order_id, o.created_at, s.seller_name, do.option_name
+    GROUP BY o.order_id, o.created_at, s.seller_name, dopt.option_name
     ORDER BY o.created_at DESC;
 END;
 $$ LANGUAGE plpgsql;
@@ -662,7 +659,6 @@ CREATE INDEX idx_product_categories_category_id ON product_categories(category_i
 CREATE INDEX idx_rankings_asin ON rankings(asin);
 CREATE INDEX idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX idx_ordered_items_asin ON ordered_items(asin);
-CREATE INDEX idx_reviews_rating ON reviews(rating);
 CREATE INDEX idx_products_asin ON products(asin);
 CREATE INDEX idx_product_sellers_seller_id ON product_sellers(seller_id);
 CREATE INDEX idx_products_brand_id ON products(brand_id);
