@@ -1,4 +1,5 @@
 -- Create database separately:
+DROP DATABASE IF EXISTS ecommercewebsite;
 CREATE DATABASE ecommercewebsite;
 -- Connect with: \c ecommercewebsite
 
@@ -205,20 +206,20 @@ CREATE TABLE customer_locations(
 
 -- Customer order
 CREATE TABLE orders (
-    order_id SERIAL PRIMARY KEY, -- Changed from INT NOT NULL SERIAL PRIMARY KEY to SERIAL PRIMARY KEY
+    order_id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
-    seller_id TEXT NOT NULL REFERENCES sellers(seller_id) ON DELETE SET NULL, -- Changed to TEXT to match sellers.seller_id
+    seller_id TEXT NOT NULL REFERENCES sellers(seller_id) ON DELETE SET NULL,
     delivery_id INT NOT NULL REFERENCES delivery_options(delivery_id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE ordered_items (
     order_id INT NOT NULL REFERENCES orders(order_id),
-    asin VARCHAR(20) NOT NULL REFERENCES products(asin), -- Changed to VARCHAR(20) to match products.asin
+    asin VARCHAR(20) NOT NULL REFERENCES products(asin),
     quantity INT NOT NULL CHECK (quantity > 0),
     added_at TIMESTAMP DEFAULT NOW(),
     last_update TIMESTAMP DEFAULT NOW(),
-    PRIMARY KEY (order_id, asin) -- Changed product_id to asin
+    PRIMARY KEY (order_id, asin)
 );
 
 -- Wishlist
@@ -230,9 +231,9 @@ CREATE TABLE wishlists (
 
 CREATE TABLE wishlist_items (
     wishlist_id INT NOT NULL REFERENCES wishlists(wishlist_id) ON DELETE CASCADE,
-    asin VARCHAR(20) NOT NULL REFERENCES products(asin) ON DELETE CASCADE, -- Changed to VARCHAR(20) to match products.asin
+    asin VARCHAR(20) NOT NULL REFERENCES products(asin) ON DELETE CASCADE,
     added_at TIMESTAMP DEFAULT NOW(),
-    PRIMARY KEY (wishlist_id, asin) -- Changed product_id to asin
+    PRIMARY KEY (wishlist_id, asin)
 );
 
 CREATE TABLE customer_reviews (
@@ -272,7 +273,7 @@ WHERE seller_id IS NOT NULL
   AND seller_name <> ''
 ON CONFLICT (seller_id) DO NOTHING;
 
--- 4. Insert into departments (New)
+-- 4. Insert into departments
 INSERT INTO departments (name)
 SELECT DISTINCT department
 FROM rawData
