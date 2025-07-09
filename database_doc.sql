@@ -146,7 +146,7 @@ CREATE TABLE media (
     asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
     image_url TEXT,
     images TEXT[],
-    images_count INTEGER,
+    images_count INTEGER
 );
 
 CREATE TABLE reviews (
@@ -264,14 +264,14 @@ CREATE TABLE customer_reviews (
 CREATE TABLE user_enquiries (
     enquiry_id SERIAL PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('Guess', 'Customer', 'Seller'))
-    gender VARCHAR(10) CHECK (gender IN ('Male', 'Female'))
+    role VARCHAR(50) NOT NULL CHECK (role IN ('Guess', 'Customer', 'Seller')),
+    gender VARCHAR(10) CHECK (gender IN ('Male', 'Female')),
     country VARCHAR(100) NOT NULL,
     region VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20),
     comment TEXT,
-    badge VARCHAR(50) NOT NULL IN ('Priority', 'Regular'),
+    badge VARCHAR(50) NOT NULL CHECK ( badge IN ('Priority', 'Regular')),
     enquiry_date DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
