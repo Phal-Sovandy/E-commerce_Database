@@ -28,12 +28,9 @@ CREATE TABLE rawData (
     model_number TEXT,
     manufacturer TEXT,
     department TEXT,
-    plus_content TEXT,
     top_review TEXT,
     variations JSONB,
     features TEXT[],
-    parent_asin VARCHAR(20),
-    input_asin VARCHAR(20),
     ingredients TEXT,
     bought_past_month INTEGER,
     bs_rank INTEGER,
@@ -47,7 +44,7 @@ CREATE TABLE rawData (
 -- psql -U postgres -d ecommercewebsite
 
 -- Then issue this command to extract data from the .csv file to the 'rawData' table, NOTE: add your own path to the 'data-products.csv'
--- \copy rawData(timestamp, title, seller_name, brand, description, initial_price, final_price, currency, availability, reviews_count, categories, asin, root_bs_rank, image_url, item_weight, rating, product_dimensions, seller_id, date_first_available, discount, model_number, manufacturer, department, plus_content, top_review, variations, features, parent_asin, input_asin, ingredients, bought_past_month, bs_rank, badge, subcategory_rank, images) FROM '/Users/macbook/Desktop/E-commerce_Database/data-products.csv' DELIMITER ',' CSV HEADER;
+-- \copy rawData(timestamp, title, seller_name, brand, description, initial_price, final_price, currency, availability, reviews_count, categories, asin, root_bs_rank, image_url, item_weight, rating, product_dimensions, seller_id, date_first_available, discount, model_number, manufacturer, department, top_review, variations, features, ingredients, bought_past_month, bs_rank, badge, subcategory_rank, images) FROM '/Users/macbook/Desktop/E-commerce_Database/data-products.csv' DELIMITER ',' CSV HEADER;
 
 -- Product
 CREATE TABLE manufacturers (
@@ -114,6 +111,30 @@ CREATE TABLE sellers (
     updated_at TIMESTAMP
 );
 
+CREATE TABLE seller_detail (
+    seller_id TEXT PRIMARY KEY REFERENCES sellers(seller_id) ON DELETE CASCADE,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT,
+    contact_person VARCHAR(255),
+    phone VARCHAR(20),
+    profile_picture TEXT,
+    login_method VARCHAR(20) DEFAULT 'email',
+    registration_date DATE DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE seller_locations (
+    seller_id TEXT PRIMARY KEY REFERENCES sellers(seller_id) ON DELETE CASCADE,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    zipcode VARCHAR(10),
+    address_line1 TEXT,
+    address_line2 TEXT,
+    CONSTRAINT fk_seller_detail
+        FOREIGN KEY (seller_id)
+        REFERENCES seller_detail(seller_id)
+        ON DELETE CASCADE
+);
+
 CREATE TABLE product_sellers (
     asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
     seller_id TEXT REFERENCES sellers(seller_id) ON DELETE CASCADE,
@@ -126,7 +147,6 @@ CREATE TABLE media (
     image_url TEXT,
     images TEXT[],
     images_count INTEGER,
-    plus_content TEXT
 );
 
 CREATE TABLE reviews (
@@ -262,7 +282,7 @@ CREATE TABLE seller_requests (
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
     CONSTRAINT fk_customer
       FOREIGN KEY(customer_id)
-        REFERENCES Customer(customer_id)
+        REFERENCES  customers(customer_id)
         ON DELETE CASCADE
 );
 
@@ -319,20 +339,16 @@ WHERE r.asin NOT IN (SELECT asin FROM products);
 
 -- 6. Insert into product_details
 INSERT INTO product_details (
-    asin, description, model_number, department_id, date_first_available, -- Changed to department_id
+    asin, description, model_number, department_id, date_first_available, 
     rating, item_weight, product_dimensions,
-    parent_asin, input_asin, ingredients
+ ingredients
 )
 SELECT
-    r.asin, r.description, r.model_number, d.department_id, r.date_first_available, -- Changed to d.department_id
+    r.asin, r.description, r.model_number, d.department_id, r.date_first_available, 
     r.rating, r.item_weight, r.product_dimensions,
-    r.parent_asin, r.input_asin, r.ingredients
+     r.ingredients
 FROM rawData r
-LEFT JOIN departments d ON r.department = d.name -- Join with departments table
-WHERE r.asin IN (SELECT asin FROM products)
-  AND (r.parent_asin IS NULL OR r.parent_asin IN (SELECT asin FROM products))
-  AND (r.input_asin IS NULL OR r.input_asin IN (SELECT asin FROM products));
-
+LEFT JOIN departments d ON r.department = d.name;
 -- 7. Insert into pricing
 INSERT INTO pricing (asin, initial_price, final_price, currency, discount) -- Added currency
 SELECT asin, initial_price, final_price, currency, discount
@@ -353,8 +369,8 @@ WHERE asin IN (SELECT asin FROM products)
   AND seller_id IN (SELECT seller_id FROM sellers);
 
 -- 10. Insert into media
-INSERT INTO media (asin, image_url, images, images_count, plus_content)
-SELECT asin, image_url, images, CARDINALITY(images), plus_content
+INSERT INTO media (asin, image_url, images, images_count)
+SELECT asin, image_url, images, CARDINALITY(images)
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
