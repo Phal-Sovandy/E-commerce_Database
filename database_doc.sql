@@ -82,8 +82,6 @@ CREATE TABLE product_details (
     item_weight TEXT,
     product_dimensions TEXT,
     department_id INT REFERENCES departments(department_id) ON DELETE SET NULL,
-    parent_asin VARCHAR(20) REFERENCES products(asin) ON DELETE SET NULL,
-    input_asin VARCHAR(20) REFERENCES products(asin) ON DELETE SET NULL,
     ingredients TEXT,
     CONSTRAINT rating_range CHECK (rating >= 0 AND rating <= 5)
 );
@@ -186,7 +184,7 @@ CREATE TABLE customer_detail (
     last_name VARCHAR(100),
     phone VARCHAR(20),
     birth_date DATE,
-    gender VARCHAR(10),
+    gender VARCHAR(10) IN ('Male', 'Female'),
     country VARCHAR(100),
     profile_picture TEXT, --Image url
     login_method VARCHAR(20) DEFAULT 'email'     -- 'email', 'google', 'facebook', etc.
@@ -241,6 +239,34 @@ CREATE TABLE customer_reviews (
     comment TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE user_enquiries (
+    enquiry_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL IN ('Guess', 'Customer', 'Seller'),
+    gender VARCHAR(10) NOT NULL IN ('Male', 'Female'),
+    country VARCHAR(100) NOT NULL,
+    region VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    comment TEXT,
+    badge VARCHAR(50) NOT NULL IN ('Priority', 'Regular'),
+    enquiry_date DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+-- Customer Account that want to become a seller
+CREATE TABLE seller_requests (
+    request_id SERIAL PRIMARY KEY,
+    customer_id INT NOT NULL,
+    request_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    CONSTRAINT fk_customer
+      FOREIGN KEY(customer_id)
+        REFERENCES Customer(customer_id)
+        ON DELETE CASCADE
+);
+
+
 
 -- Insert the associated attribute to each table
 
