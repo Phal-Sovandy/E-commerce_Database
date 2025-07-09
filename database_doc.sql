@@ -204,7 +204,7 @@ CREATE TABLE customer_detail (
     last_name VARCHAR(100),
     phone VARCHAR(20),
     birth_date DATE,
-    gender VARCHAR(10) IN ('Male', 'Female'),
+    gender VARCHAR(10) CHECK (gender IN ('Male', 'Female')),
     country VARCHAR(100),
     profile_picture TEXT, --Image url
     login_method VARCHAR(20) DEFAULT 'email'     -- 'email', 'google', 'facebook', etc.
@@ -225,7 +225,8 @@ CREATE TABLE orders (
     customer_id INT NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
     seller_id TEXT NOT NULL REFERENCES sellers(seller_id) ON DELETE SET NULL,
     delivery_id INT NOT NULL REFERENCES delivery_options(delivery_id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    status VARCHAR(30) NOT NULL CHECK (status IN ('Cancelled', 'Shipping', 'Delivered', 'Processing'))
 );
 
 CREATE TABLE ordered_items (
@@ -263,8 +264,8 @@ CREATE TABLE customer_reviews (
 CREATE TABLE user_enquiries (
     enquiry_id SERIAL PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL IN ('Guess', 'Customer', 'Seller'),
-    gender VARCHAR(10) NOT NULL IN ('Male', 'Female'),
+    role VARCHAR(50) NOT NULL CHECK (role IN ('Guess', 'Customer', 'Seller'))
+    gender VARCHAR(10) CHECK (gender IN ('Male', 'Female'))
     country VARCHAR(100) NOT NULL,
     region VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -279,14 +280,21 @@ CREATE TABLE seller_requests (
     request_id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL,
     request_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    status VARCHAR(20) NOT NULL 
+  DEFAULT 'pending' 
+  CHECK (status IN ('pending', 'approved', 'rejected')),
     CONSTRAINT fk_customer
       FOREIGN KEY(customer_id)
         REFERENCES  customers(customer_id)
         ON DELETE CASCADE
 );
 
-
+CREATE TABLE admin (
+    admin_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    hashed_password TEXT NOT NULL
+);
 
 -- Insert the associated attribute to each table
 
