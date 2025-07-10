@@ -80,6 +80,7 @@ CREATE TABLE product_details (
     product_dimensions TEXT,
     department_id INT REFERENCES departments(department_id) ON DELETE SET NULL,
     ingredients TEXT,
+    features TEXT[],
     CONSTRAINT rating_range CHECK (rating >= 0 AND rating <= 5)
 );
 
@@ -166,12 +167,6 @@ CREATE TABLE product_categories (
     asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
     category_id INTEGER REFERENCES categories(category_id) ON DELETE CASCADE,
     PRIMARY KEY (asin, category_id)
-);
-
-CREATE TABLE features (
-    feature_id SERIAL PRIMARY KEY,
-    asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
-    feature TEXT[]
 );
 
 CREATE TABLE variations (
@@ -348,13 +343,12 @@ WHERE r.asin NOT IN (SELECT asin FROM products);
 -- 6. Insert into product_details
 INSERT INTO product_details (
     asin, description, model_number, department_id, date_first_available, 
-    rating, item_weight, product_dimensions,
+    rating, item_weight, product_dimensions, features
  ingredients
 )
 SELECT
     r.asin, r.description, r.model_number, d.department_id, r.date_first_available, 
-    r.rating, r.item_weight, r.product_dimensions,
-     r.ingredients
+    r.rating, r.item_weight, r.product_dimensions, r.features, r.ingredients
 FROM rawData r
 LEFT JOIN departments d ON r.department = d.name;
 -- 7. Insert into pricing
@@ -388,11 +382,6 @@ SELECT asin, reviews_count, NULL, top_review, bought_past_month
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
--- 12. Insert into features
-INSERT INTO features (asin, feature)
-SELECT asin, features
-FROM rawData
-WHERE features IS NOT NULL AND asin IN (SELECT asin FROM products);
 
 -- 13. Insert into variations
 INSERT INTO variations (asin, variations)
