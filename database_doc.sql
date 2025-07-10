@@ -35,7 +35,7 @@ CREATE TABLE rawData (
     bought_past_month INTEGER,
     bs_rank INTEGER,
     badge TEXT,
-    subcategory_rank TEXT,
+    subcategory_rank JSONB,
     images TEXT[]
 );
 
@@ -85,11 +85,10 @@ CREATE TABLE product_details (
 );
 
 CREATE TABLE rankings (
-    ranking_id SERIAL PRIMARY KEY,
-    asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
+    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
     root_bs_rank INTEGER,
     bs_rank INTEGER,
-    subcategory_rank TEXT,
+    subcategory_rank JSONB,
     badge TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP
