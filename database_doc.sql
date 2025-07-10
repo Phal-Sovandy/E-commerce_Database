@@ -342,8 +342,7 @@ WHERE r.asin NOT IN (SELECT asin FROM products);
 -- 6. Insert into product_details
 INSERT INTO product_details (
     asin, description, model_number, department_id, date_first_available, 
-    rating, item_weight, product_dimensions, features
- ingredients
+    rating, item_weight, product_dimensions, features, ingredients
 )
 SELECT
     r.asin, r.description, r.model_number, d.department_id, r.date_first_available, 
