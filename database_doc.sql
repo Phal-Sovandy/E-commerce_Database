@@ -15,7 +15,7 @@ CREATE TABLE rawData (
     currency VARCHAR(10),
     availability TEXT,
     reviews_count INTEGER,
-    categories TEXT,
+    categories TEXT[],
     asin VARCHAR(20) PRIMARY KEY,
     root_bs_rank INTEGER,
     image_url TEXT,
@@ -177,7 +177,7 @@ CREATE TABLE features (
 CREATE TABLE variations (
     variation_id SERIAL PRIMARY KEY,
     asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
-    variation JSONB
+    variations JSONB
 );
 
 CREATE TABLE delivery_options (
@@ -395,7 +395,7 @@ FROM rawData
 WHERE features IS NOT NULL AND asin IN (SELECT asin FROM products);
 
 -- 13. Insert into variations
-INSERT INTO variations (asin, variation)
+INSERT INTO variations (asin, variations)
 SELECT asin, variations
 FROM rawData
 WHERE variations IS NOT NULL AND asin IN (SELECT asin FROM products);
@@ -403,7 +403,7 @@ WHERE variations IS NOT NULL AND asin IN (SELECT asin FROM products);
 -- 14. Insert into categories
 -- Step A: create temporary table of category names
 CREATE TEMP TABLE tmp_categories AS
-SELECT DISTINCT TRIM(unnest(string_to_array(categories, ','))) AS name
+SELECT DISTINCT TRIM(unnest(categories)) AS name
 FROM rawData
 WHERE categories IS NOT NULL;
 
