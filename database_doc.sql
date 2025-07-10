@@ -169,8 +169,7 @@ CREATE TABLE product_categories (
 );
 
 CREATE TABLE variations (
-    variation_id SERIAL PRIMARY KEY,
-    asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
+    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
     variations JSONB
 );
 
