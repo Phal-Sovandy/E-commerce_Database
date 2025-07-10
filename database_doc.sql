@@ -416,10 +416,11 @@ WHERE name NOT IN (SELECT name FROM categories);
 -- Step C: insert into product_categories
 INSERT INTO product_categories (asin, category_id)
 SELECT DISTINCT r.asin, c.category_id
-FROM rawData r,
-     unnest(string_to_array(r.categories, ',')) AS category_name
+FROM rawData r
+JOIN LATERAL unnest(r.categories) AS category_name ON true
 JOIN categories c ON TRIM(category_name) = c.name
 WHERE r.asin IN (SELECT asin FROM products);
+
 
 -- ==========================================================
 --                        PROCEDURES
