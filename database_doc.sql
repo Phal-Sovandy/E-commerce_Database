@@ -42,7 +42,7 @@ CREATE TABLE rawData (
 -- psql -U postgres -d ecommercewebsite
 
 -- Then issue this command to extract data from the .csv file to the 'rawData' table, NOTE: add your own path to the 'data-products.csv'
--- \copy rawData(timestamp, title, seller_name, brand, description, initial_price, final_price, currency, availability, reviews_count, categories, asin, root_bs_rank, image_url, item_weight, rating, product_dimensions, seller_id, date_first_available, discount, model_number, manufacturer, department, top_review, variations, features, ingredients, bought_past_month, bs_rank, badge, subcategory_rank, images) FROM '/Users/macbook/Desktop/E-commerce_Database/data-products.csv' DELIMITER ',' CSV HEADER;
+-- \copy rawData(timestamp, title, seller_name, brand, description, initial_price, final_price, currency, availability, categories, asin, root_bs_rank, image_url, item_weight, rating, product_dimensions, seller_id, date_first_available, discount, model_number, manufacturer, department, top_review, variations, features, ingredients, bs_rank, badge, subcategory_rank, images) FROM '/Users/macbook/Desktop/E-commerce_Database/data-products.csv' DELIMITER ',' CSV HEADER;
 
 -- Product
 CREATE TABLE manufacturers (
