@@ -110,12 +110,12 @@ CREATE TABLE sellers (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP
 );
-
 CREATE TABLE seller_detail (
     seller_id TEXT PRIMARY KEY REFERENCES sellers(seller_id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT,
     contact_person VARCHAR(255),
+    bio TEXT,
     phone VARCHAR(20),
     profile_picture TEXT,
     login_method VARCHAR(20) DEFAULT 'email',
@@ -125,6 +125,7 @@ CREATE TABLE seller_detail (
 
 CREATE TABLE seller_locations (
     seller_id TEXT PRIMARY KEY REFERENCES sellers(seller_id) ON DELETE CASCADE,
+    country VARCHAR(100),
     city VARCHAR(100),
     state VARCHAR(100),
     zipcode VARCHAR(10),
@@ -204,6 +205,7 @@ CREATE TABLE customer_detail (
 
 CREATE TABLE customer_locations(
     customer_id INT REFERENCES customer_detail(customer_id) ON DELETE CASCADE,
+    country VARCHAR(100),
     city VARCHAR(100),
     state VARCHAR(100),
     zipcode VARCHAR(10),
