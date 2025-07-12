@@ -119,6 +119,7 @@ CREATE TABLE seller_detail (
     phone VARCHAR(20),
     profile_picture TEXT,
     login_method VARCHAR(20) DEFAULT 'email',
+    status BOOLEAN NOT NULL DEFAULT true, 
     registration_date DATE DEFAULT CURRENT_DATE
 );
 
@@ -197,6 +198,7 @@ CREATE TABLE customer_detail (
     gender VARCHAR(10) CHECK (gender IN ('Male', 'Female')),
     country VARCHAR(100),
     profile_picture TEXT, --Image url
+    status BOOLEAN NOT NULL DEFAULT true,
     login_method VARCHAR(20) DEFAULT 'email'     -- 'email', 'google', 'facebook', etc.
 );
 
