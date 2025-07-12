@@ -151,7 +151,7 @@ CREATE TABLE media (
 
 CREATE TABLE top_review (
     asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
-    top_review TEXT,
+    top_review TEXT
 );
 
 CREATE TABLE categories (
