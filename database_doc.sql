@@ -14,7 +14,6 @@ CREATE TABLE rawData (
     final_price NUMERIC(10, 2),
     currency VARCHAR(10),
     availability TEXT,
-    reviews_count INTEGER,
     categories TEXT[],
     asin VARCHAR(20) PRIMARY KEY,
     root_bs_rank INTEGER,
@@ -32,7 +31,6 @@ CREATE TABLE rawData (
     variations JSONB,
     features TEXT[],
     ingredients TEXT,
-    bought_past_month INTEGER,
     bs_rank INTEGER,
     badge TEXT,
     subcategory_rank JSONB,
@@ -149,12 +147,9 @@ CREATE TABLE media (
     images_count INTEGER
 );
 
-CREATE TABLE reviews (
+CREATE TABLE top_review (
     asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
-    reviews_count INTEGER,
-    answered_questions INTEGER,
     top_review TEXT,
-    bought_past_month INTEGER
 );
 
 CREATE TABLE categories (
@@ -374,8 +369,8 @@ FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
 -- 11. Insert into reviews
-INSERT INTO reviews (asin, reviews_count, answered_questions, top_review, bought_past_month)
-SELECT asin, reviews_count, NULL, top_review, bought_past_month
+INSERT INTO top_review (asin, top_review)
+SELECT asin, top_review
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
@@ -581,7 +576,6 @@ RETURNS TABLE (
     manufacturer TEXT,
     price NUMERIC,
     rating NUMERIC,
-    review_count INT,
     description TEXT,
     image_url TEXT
 ) AS $$
@@ -592,16 +586,13 @@ BEGIN
         b.name,
         m.name,
         pr.final_price,
-        pd.rating,
-        r.reviews_count,
-        pd.description,
+        pd.rating,        pd.description,
         md.image_url 
     FROM products p
     LEFT JOIN brands b ON p.brand_id = b.brand_id
     LEFT JOIN manufacturers m ON p.manufacturer_id = m.manufacturer_id
     LEFT JOIN pricing pr ON p.asin = pr.asin
     LEFT JOIN product_details pd ON p.asin = pd.asin
-    LEFT JOIN reviews r ON p.asin = r.asin
     LEFT JOIN media md ON p.asin = md.asin
     WHERE p.asin = p_asin;
 END;
@@ -677,16 +668,16 @@ LEFT JOIN manufacturers m ON p.manufacturer_id = m.manufacturer_id
 ORDER BY pr.final_price DESC
 LIMIT 5;
 
-CREATE OR REPLACE VIEW products_with_no_reviews AS
-SELECT
-    p.asin,
-    p.title,
-    p.availability,
-    pr.final_price
-FROM products p
-LEFT JOIN reviews r ON p.asin = r.asin
-LEFT JOIN pricing pr ON p.asin = pr.asin
-WHERE r.reviews_count IS NULL OR r.reviews_count = 0;
+-- CREATE OR REPLACE VIEW products_with_no_reviews AS
+-- SELECT
+--     p.asin,
+--     p.title,
+--     p.availability,
+--     pr.final_price
+-- FROM products p
+-- LEFT JOIN top_review r ON p.asin = r.asin
+-- LEFT JOIN pricing pr ON p.asin = pr.asin
+-- WHERE r.reviews_count IS NULL OR r.reviews_count = 0;
 
 -- ==========================================================
 --                        INDEXS
