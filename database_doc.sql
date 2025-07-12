@@ -65,7 +65,9 @@ CREATE TABLE products (
     title TEXT NOT NULL,
     brand_id INT REFERENCES brands(brand_id) ON DELETE SET NULL,
     manufacturer_id INT REFERENCES manufacturers(manufacturer_id) ON DELETE SET NULL,
-    availability TEXT
+    availability TEXT,
+    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE product_details (
