@@ -201,6 +201,7 @@ CREATE TABLE customer_detail (
     profile_picture TEXT, --Image url
     status BOOLEAN NOT NULL DEFAULT true,
     login_method VARCHAR(20) DEFAULT 'email'     -- 'email', 'google', 'facebook', etc.
+    registration_date DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE customer_locations(
