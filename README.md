@@ -4,25 +4,26 @@
 
 1.  [Introduction](#1-introduction)
 2.  [Features](#2-features)
-3.  [Prerequisites](#3-prerequisites)
-4.  [Database Setup Guide](#4-database-setup-guide)
-    * [4.1. Schema Initialization](#41-schema-initialization)
-    * [4.2. Database Logic Deployment](#42-database-logic-deployment)
-    * [4.3. View Creation](#43-view-creation)
-    * [4.4. Data Population](#44-data-population)
-5.  [Database Schema Overview](#5-database-schema-overview)
-    * [5.1. Product and Related Tables](#51-product-and-related-tables)
-    * [5.2. Seller and Related Tables](#52-seller-and-related-tables)
-    * [5.3. Delivery Option Tables](#53-delivery-option-tables)
-    * [5.4. Customer and Related Tables](#54-customer-and-related-tables)
-    * [5.5. Order and Related Tables](#55-order-and-related-tables)
-    * [5.6. Customer Wishlist and Related Tables](#56-customer-wishlist-and-related-tables)
-    * [5.7. Customer Review Table](#57-customer-review-table)
-    * [5.8. User Enquiries Table](#58-user-enquiries-table)
-    * [5.9. Become Seller Requests Table](#59-become-seller-requests-table)
-    * [5.10. Website Admin Account Table](#510-website-admin-account-table)
-6.  [Contributing](#6-contributing)
-7.  [License](#7-license)
+3.  [Repository Structure](#3-repository-structure)
+4.  [Prerequisites](#3-prerequisites)
+5.  [Database Setup Guide](#4-database-setup-guide)
+    * [5.1. Schema Initialization](#41-schema-initialization)
+    * [5.2. Database Logic Deployment](#42-database-logic-deployment)
+    * [5.3. View Creation](#43-view-creation)
+    * [5.4. Data Population](#44-data-population)
+6.  [Database Schema Overview](#5-database-schema-overview)
+    * [6.1. Product and Related Tables](#51-product-and-related-tables)
+    * [6.2. Seller and Related Tables](#52-seller-and-related-tables)
+    * [6.3. Delivery Option Tables](#53-delivery-option-tables)
+    * [6.4. Customer and Related Tables](#54-customer-and-related-tables)
+    * [6.5. Order and Related Tables](#55-order-and-related-tables)
+    * [6.6. Customer Wishlist and Related Tables](#56-customer-wishlist-and-related-tables)
+    * [6.7. Customer Review Table](#57-customer-review-table)
+    * [6.8. User Enquiries Table](#58-user-enquiries-table)
+    * [6.9. Become Seller Requests Table](#59-become-seller-requests-table)
+    * [6.10. Website Admin Account Table](#510-website-admin-account-table)
+7.  [Contributing](#6-contributing)
+8.  [License](#7-license)
 
 ---
 
@@ -39,7 +40,39 @@ This project provides a comprehensive database schema and associated scripts for
 * **Administrative Tools**: Tables for user enquiries, seller requests, and administrator accounts.
 * **Data Flexibility**: Utilizes `JSONB` data type for flexible storage of `subcategory_rank` and `variations`.
 
-## 3. Prerequisites
+## 3. Repository Structure
+
+The project is organized into several directories to logically separate different components of the database setup and data management.
+```bash
+.
+├── data/
+│   ├── data-products.csv        # Raw CSV data for product import
+│   ├── import_raw_csv.sql       # SQL script to import data from CSV into rawData table, then to main tables
+│   └── random_generate_data.py  # Python script to generate random data
+├── logic/
+│   ├── functions.sql            # SQL scripts for database functions
+│   ├── procedures.sql           # SQL scripts for database stored procedures
+│   ├── triggers.sql             # SQL scripts for database triggers
+│   └── delete_all_data.sql      # SQL script for clearing all data (use with caution)
+├── schema/
+│   ├── create_tables.sql        # SQL script for creating all database tables
+│   └── constraint_indexes.sql   # SQL script for adding primary keys, foreign keys, and indexes
+├── views/
+│   └── views.sql                # SQL script for creating database views
+├── .gitignore                   # Specifies intentionally untracked files to ignore
+├── CONTRIBUTING.md              # Guidelines for contributing to the project
+└── README.md                    # This README file
+```
+
+### Directory Breakdown:
+
+* **`data/`**: Contains scripts and files related to populating the database with initial or test data.
+* **`logic/`**: Houses SQL scripts that implement the business logic of the database, such as functions, procedures, and triggers.
+* **`schema/`**: Contains the core SQL scripts for defining the database structure (tables, constraints, and indexes).
+* **`views/`**: Stores SQL scripts for creating database views, which simplify data retrieval.
+
+
+## 4. Prerequisites
 
 Before setting up the database, ensure you have the following installed:
 
@@ -58,11 +91,11 @@ Before setting up the database, ensure you have the following installed:
         pip3 install Faker
         ```
 
-## 4. Database Setup Guide
+## 5. Database Setup Guide
 
 Follow these steps meticulously to set up and populate your e-commerce database. Each step involves executing SQL scripts using your PostgreSQL client (e.g., pgAdmin4).
 
-### 4.1. Schema Initialization
+### 5.1. Schema Initialization
 
 This step involves creating all necessary tables and defining their structural integrity.
 
@@ -76,7 +109,7 @@ This step involves creating all necessary tables and defining their structural i
     * Copy its content.
     * Paste and execute it in your PostgreSQL client. This script will apply primary keys, foreign keys, and other constraints and indexes that optimize database performance and enforce data integrity.
 
-### 4.2. Database Logic Deployment
+### 5.2. Database Logic Deployment
 
 This phase involves deploying stored procedures, functions, and triggers that implement core business logic.
 
@@ -88,7 +121,7 @@ This phase involves deploying stored procedures, functions, and triggers that im
 
     **Important**: Do **NOT** run `delete_all_data.sql` at this stage, as it is intended for database cleanup.
 
-### 4.3. View Creation
+### 5.3. View Creation
 
 Views provide simplified and often customized representations of the data from one or more tables.
 
@@ -97,7 +130,7 @@ Views provide simplified and often customized representations of the data from o
     * Copy its content.
     * Paste and execute it in your PostgreSQL client. This will create various predefined views for easier data retrieval and reporting.
 
-### 4.4. Data Population
+### 5.4. Data Population
 
 You have two distinct methods to populate the database with data. Choose **only one** option.
 
@@ -186,11 +219,11 @@ This method is ideal for quickly populating the database with synthetic data for
         ```
         (For Windows users, you might need to use `python` instead of `python3`.)
 
-## 5. Database Schema Overview
+## 6. Database Schema Overview
 
 The `ecommercewebsite` database is structured to support a wide range of e-commerce operations. Below is a detailed breakdown of the major table groups:
 
-### 5.1. Product and Related Tables
+### 6.1. Product and Related Tables
 
 These tables are central to managing product inventory and attributes.
 
@@ -207,7 +240,7 @@ These tables are central to managing product inventory and attributes.
 * **`product_categories`**: A junction table that establishes a many-to-many relationship between `products` and `categories`.
 * **`variations`**: Stores product variations in a flexible `JSONB` format.
 
-### 5.2. Seller and Related Tables
+### 6.2. Seller and Related Tables
 
 These tables manage information pertaining to sellers on the platform.
 
@@ -216,13 +249,13 @@ These tables manage information pertaining to sellers on the platform.
 * **`seller_locations`**: Stores geographical address details for sellers, including `country`, `city`, `state`, `zipcode`, `address_line1`, and `address_line2`. It also references `seller_detail` with a foreign key constraint.
 * **`product_sellers`**: Links `products` to `sellers`, indicating which products are offered by which sellers. It has a unique constraint ensuring that each product-seller combination is distinct.
 
-### 5.3. Delivery Option Tables
+### 6.3. Delivery Option Tables
 
 Manages the various shipping and delivery options available.
 
 * **`delivery_options`**: Defines different delivery methods, including `option_name`, `delivery_days`, and `price`.
 
-### 5.4. Customer and Related Tables
+### 6.4. Customer and Related Tables
 
 These tables handle customer accounts and their personal information.
 
@@ -230,48 +263,48 @@ These tables handle customer accounts and their personal information.
 * **`customer_detail`**: Extensive customer details, such as `email`, `password_hash`, `first_name`, `last_name`, `phone`, `birth_date`, `gender`, `country`, `profile_picture`, `status`, `login_method`, and `registration_date`. It has a foreign key to `customers`.
 * **`customer_locations`**: Stores address details for customers.
 
-### 5.5. Order and Related Tables
+### 6.5. Order and Related Tables
 
 These tables track customer orders and the items within them.
 
 * **`orders`**: Records order information, linking a `customer_id`, `seller_id`, and `delivery_id`. Includes `created_at` and `status`, with `status` restricted to 'Cancelled', 'Shipping', 'Delivered', or 'Processing'.
 * **`ordered_items`**: Details the specific products (`asin`) and their `quantity` for each `order_id`.
 
-### 5.6. Customer Wishlist and Related Tables
+### 6.6. Customer Wishlist and Related Tables
 
 Manages customer wishlists and their contents.
 
 * **`wishlists`**: Stores basic wishlist information, including the associated `customer_id`.
 * **`wishlist_items`**: Links specific `products` (`asin`) to `wishlists`.
 
-### 5.7. Customer Review Table
+### 6.7. Customer Review Table
 
 Dedicated to storing customer feedback on products.
 
 * **`customer_reviews`**: Captures product reviews, including `rating` (with a `CHECK` constraint `(rating >= 1 AND rating <= 5)`), `comment`, and references to `asin` and `customer_id`.
 
-### 5.8. User Enquiries Table
+### 6.8. User Enquiries Table
 
 Handles general inquiries from website users.
 
 * **`user_enquiries`**: Stores details of inquiries, including `full_name`, `role` (constrained to 'Guess', 'Customer', 'Seller'), `gender`, `country`, `region`, `email`, `phone`, `comment`, `badge` (constrained to 'Priority', 'Regular'), and `enquiry_date`.
 
-### 5.9. Become Seller Requests Table
+### 6.9. Become Seller Requests Table
 
 Manages requests from customers who wish to transition to a seller role.
 
 * **`seller_requests`**: Tracks `customer_id`s requesting to become sellers, their `request_date`, and `status` (constrained to 'pending', 'approved', 'rejected').
 
-### 5.10. Website Admin Account Table
+### 6.10. Website Admin Account Table
 
 Manages administrative access to the platform.
 
 * **`admin`**: Stores `admin_id`, `email`, `phone`, and a `hashed_password` for website administrators.
 
-## 6. Contributing
+## 7. Contributing
 
 Contributions are welcome! If you have suggestions for improvements, new features, or bug fixes, please open an issue or submit a pull request.
 
-## 7. License
+## 8. License
 
 This project is open-source and available under the [MIT License](LICENSE).
