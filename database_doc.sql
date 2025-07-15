@@ -1,9 +1,17 @@
--- Create database separately:
+-- Create database
 DROP DATABASE IF EXISTS ecommercewebsite;
 CREATE DATABASE ecommercewebsite;
--- Connect with: \c ecommercewebsite
 
--- Convert from raw data of CSV file to PostgreSQL data form
+
+-- ****************************************************************************
+-- ************* Populating Data from 'data-products.csv'  ********************
+-- ****************************************************************************
+
+-- ============================================================================
+-- =========================== Raw Data Tables ================================ 
+-- ============================================================================
+-- (Convert from raw data of CSV file to PostgreSQL data form)
+
 CREATE TABLE rawData (
     timestamp TIMESTAMP,
     title TEXT,
@@ -37,14 +45,21 @@ CREATE TABLE rawData (
     images TEXT[]
 );
 
-
 -- Open terminal and connect to the 'ecommercewebsite' database
 -- psql -U postgres -d ecommercewebsite
 
 -- Then issue this command to extract data from the .csv file to the 'rawData' table, NOTE: add your own path to the 'data-products.csv'
 -- \copy rawData(timestamp, title, seller_name, brand, description, initial_price, final_price, currency, availability, categories, asin, root_bs_rank, image_url, item_weight, rating, product_dimensions, seller_id, date_first_available, discount, model_number, manufacturer, department, top_review, variations, features, ingredients, bs_rank, badge, subcategory_rank, images) FROM '/Users/macbook/Desktop/E-commerce_Database/data-products.csv' DELIMITER ',' CSV HEADER;
 
--- Product
+
+-- ****************************************************************************
+-- *************************** Table Definitions  *****************************
+-- ****************************************************************************
+
+-- ============================================================================
+-- ======================== Product and Related Tables ======================== 
+-- ============================================================================
+
 CREATE TABLE manufacturers (
     manufacturer_id SERIAL PRIMARY KEY,
     name TEXT UNIQUE NOT NULL
@@ -104,12 +119,46 @@ CREATE TABLE pricing (
     updated_at TIMESTAMP
 );
 
+CREATE TABLE media (
+    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
+    image_url TEXT,
+    images TEXT[],
+    images_count INTEGER
+);
+
+CREATE TABLE top_review (
+    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
+    top_review TEXT
+);
+
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE product_categories (
+    asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
+    category_id INTEGER REFERENCES categories(category_id) ON DELETE CASCADE,
+    PRIMARY KEY (asin, category_id)
+);
+
+CREATE TABLE variations (
+    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
+    variations JSONB
+);
+
+
+-- ============================================================================
+-- ======================== Seller and Related Tables ========================= 
+-- ============================================================================
+
 CREATE TABLE sellers (
     seller_id TEXT PRIMARY KEY,
     seller_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP
 );
+
 CREATE TABLE seller_detail (
     seller_id TEXT PRIMARY KEY REFERENCES sellers(seller_id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -144,33 +193,10 @@ CREATE TABLE product_sellers (
     CONSTRAINT unique_product_seller_delivery UNIQUE (asin, seller_id)
 );
 
-CREATE TABLE media (
-    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
-    image_url TEXT,
-    images TEXT[],
-    images_count INTEGER
-);
 
-CREATE TABLE top_review (
-    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
-    top_review TEXT
-);
-
-CREATE TABLE categories (
-    category_id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
-
-CREATE TABLE product_categories (
-    asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
-    category_id INTEGER REFERENCES categories(category_id) ON DELETE CASCADE,
-    PRIMARY KEY (asin, category_id)
-);
-
-CREATE TABLE variations (
-    asin VARCHAR(20) PRIMARY KEY REFERENCES products(asin) ON DELETE CASCADE,
-    variations JSONB
-);
+-- ============================================================================
+-- ========================== Delivery Option Tables ==========================
+-- ============================================================================
 
 CREATE TABLE delivery_options (
     delivery_id SERIAL PRIMARY KEY,
@@ -180,7 +206,10 @@ CREATE TABLE delivery_options (
 );
 
 
--- Customer
+-- ============================================================================
+-- ======================= Customer and Related Tables ========================
+-- ============================================================================
+
 CREATE TABLE customers (
     customer_id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -214,7 +243,11 @@ CREATE TABLE customer_locations(
     address_line2 TEXT
 );
 
--- Customer order
+
+-- ============================================================================
+-- ========================= Order and Related Tables =========================
+-- ============================================================================
+
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
@@ -233,7 +266,11 @@ CREATE TABLE ordered_items (
     PRIMARY KEY (order_id, asin)
 );
 
--- Wishlist
+
+-- ============================================================================
+-- ================= Customer Wishlist and Related Tables =====================
+-- ============================================================================
+
 CREATE TABLE wishlists (
     wishlist_id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
@@ -247,6 +284,11 @@ CREATE TABLE wishlist_items (
     PRIMARY KEY (wishlist_id, asin)
 );
 
+
+-- ============================================================================
+-- ======================== Customer Review Table =============================
+-- ============================================================================
+
 CREATE TABLE customer_reviews (
     review_id SERIAL PRIMARY KEY,
     asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
@@ -255,6 +297,12 @@ CREATE TABLE customer_reviews (
     comment TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+
+-- ============================================================================
+-- ======================== User enqueries Table ==============================
+-- ============================================================================
+-- (User have question about the website or wants any help.)
 
 CREATE TABLE user_enquiries (
     enquiry_id SERIAL PRIMARY KEY,
@@ -270,7 +318,11 @@ CREATE TABLE user_enquiries (
     enquiry_date DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
--- Customer Account that want to become a seller
+-- ============================================================================
+-- ===================== Become Seller Requests Table =========================
+-- ============================================================================
+
+-- (Customer Account that want to become a seller)
 CREATE TABLE seller_requests (
     request_id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL,
@@ -284,6 +336,11 @@ CREATE TABLE seller_requests (
         ON DELETE CASCADE
 );
 
+
+-- ============================================================================
+-- ===================== Website Admin account Table ==========================
+-- ============================================================================
+
 CREATE TABLE admin (
     admin_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -291,43 +348,52 @@ CREATE TABLE admin (
     hashed_password TEXT NOT NULL
 );
 
--- Insert the associated attribute to each table
 
--- 1. Insert into manufacturers
+
+-- ****************************************************************************
+-- ************ Data Insertions from 'data-products.csv' file *****************
+-- ****************************************************************************
+
+-- Insert into manufacturers
+-- ============================================================================
 INSERT INTO manufacturers (name)
 SELECT DISTINCT manufacturer
 FROM rawData
 WHERE manufacturer IS NOT NULL
-  AND manufacturer <> ''
+  AND manufacturer != ''
   AND manufacturer NOT IN (SELECT name FROM manufacturers);
 
--- 2. Insert into brands
+-- Insert into brands
+-- ============================================================================
 INSERT INTO brands (name)
 SELECT DISTINCT brand
 FROM rawData
 WHERE brand IS NOT NULL
-  AND brand <> ''
+  AND brand != ''
   AND brand NOT IN (SELECT name FROM brands);
 
--- 3. Insert into sellers
+-- Insert into sellers
+-- ============================================================================
 INSERT INTO sellers (seller_id, seller_name)
 SELECT DISTINCT seller_id, seller_name
 FROM rawData
 WHERE seller_id IS NOT NULL
   AND seller_name IS NOT NULL
-  AND seller_id <> ''
-  AND seller_name <> ''
+  AND seller_id != ''
+  AND seller_name != ''
 ON CONFLICT (seller_id) DO NOTHING;
 
--- 4. Insert into departments
+-- Insert into departments
+-- ============================================================================
 INSERT INTO departments (name)
 SELECT DISTINCT department
 FROM rawData
 WHERE department IS NOT NULL
-  AND department <> ''
+  AND department != ''
   AND department NOT IN (SELECT name FROM departments);
 
--- 5. Insert into products
+-- Insert into products
+-- ============================================================================
 INSERT INTO products (asin, title, brand_id, manufacturer_id, availability)
 SELECT
     r.asin,
@@ -340,7 +406,8 @@ LEFT JOIN brands b ON r.brand = b.name
 LEFT JOIN manufacturers m ON r.manufacturer = m.name
 WHERE r.asin NOT IN (SELECT asin FROM products);
 
--- 6. Insert into product_details
+-- Insert into product_details
+-- ============================================================================
 INSERT INTO product_details (
     asin, description, model_number, department_id, date_first_available, 
     rating, item_weight, product_dimensions, features, ingredients
@@ -350,58 +417,66 @@ SELECT
     r.rating, r.item_weight, r.product_dimensions, r.features, r.ingredients
 FROM rawData r
 LEFT JOIN departments d ON r.department = d.name;
--- 7. Insert into pricing
-INSERT INTO pricing (asin, initial_price, final_price, currency, discount) -- Added currency
+
+-- Insert into pricing
+-- ============================================================================
+INSERT INTO pricing (asin, initial_price, final_price, currency, discount)
 SELECT asin, initial_price, final_price, currency, discount
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
--- 8. Insert into rankings
+-- Insert into rankings
+-- ============================================================================
 INSERT INTO rankings (asin, root_bs_rank, bs_rank, subcategory_rank, badge)
 SELECT asin, root_bs_rank, bs_rank, subcategory_rank, badge
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
--- 9. Insert into product_sellers
+-- Insert into product_sellers
+-- ============================================================================
 INSERT INTO product_sellers (asin, seller_id)
 SELECT DISTINCT asin, seller_id
 FROM rawData
 WHERE asin IN (SELECT asin FROM products)
   AND seller_id IN (SELECT seller_id FROM sellers);
 
--- 10. Insert into media
+-- Insert into media
+-- ============================================================================
 INSERT INTO media (asin, image_url, images, images_count)
 SELECT asin, image_url, images, CARDINALITY(images)
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
--- 11. Insert into reviews
+-- Insert into reviews
+-- ============================================================================
 INSERT INTO top_review (asin, top_review)
 SELECT asin, top_review
 FROM rawData
 WHERE asin IN (SELECT asin FROM products);
 
 
--- 13. Insert into variations
+-- Insert into variations
+-- ============================================================================
 INSERT INTO variations (asin, variations)
 SELECT asin, variations
 FROM rawData
 WHERE variations IS NOT NULL AND asin IN (SELECT asin FROM products);
 
--- 14. Insert into categories
--- Step A: create temporary table of category names
+-- Insert into categories
+-- ============================================================================
+-- create temporary table of category names
 CREATE TEMP TABLE tmp_categories AS
 SELECT DISTINCT TRIM(unnest(categories)) AS name
 FROM rawData
 WHERE categories IS NOT NULL;
 
--- Step B: insert new categories
+-- Insert new categories
 INSERT INTO categories (name)
 SELECT name
 FROM tmp_categories
 WHERE name NOT IN (SELECT name FROM categories);
 
--- Step C: insert into product_categories
+-- Insert into product_categories
 INSERT INTO product_categories (asin, category_id)
 SELECT DISTINCT r.asin, c.category_id
 FROM rawData r
@@ -410,9 +485,14 @@ JOIN categories c ON TRIM(category_name) = c.name
 WHERE r.asin IN (SELECT asin FROM products);
 
 
--- ==========================================================
---                        PROCEDURES
--- ==========================================================
+-- ****************************************************************************
+-- ***************************** PROCEDURES ***********************************
+-- ****************************************************************************
+
+-- =(1)========================================================================
+-- ============================ Add New Product ===============================
+-- ============================================================================
+
 CREATE OR REPLACE PROCEDURE add_new_product(
     p_asin VARCHAR,
     p_title TEXT,
@@ -451,19 +531,20 @@ BEGIN
         END IF;
     END IF;
 
-    -- Insert into products
     INSERT INTO products(asin, title, brand_id, manufacturer_id)
     VALUES (p_asin, p_title, brand_id_val, manufacturer_id_val);
 
-    -- Insert into pricing
     INSERT INTO pricing(asin, final_price, currency)
     VALUES (p_asin, p_price, p_currency);
 
-    -- Insert into product_details
     INSERT INTO product_details(asin, rating, description, department_id)
     VALUES (p_asin, p_rating, p_description, department_id_val);
 END;
 $$;
+
+-- =(2)========================================================================
+-- ============================= Place Order ==================================
+-- ============================================================================
 
 CREATE OR REPLACE PROCEDURE place_order(
     IN p_customer_id INT,
@@ -493,6 +574,10 @@ BEGIN
 END;
 $$;
 
+-- =(3)========================================================================
+-- ======================= Update Product Price ===============================
+-- ============================================================================
+
 CREATE OR REPLACE PROCEDURE update_product_price(
     p_asin VARCHAR,
     p_new_price NUMERIC
@@ -506,6 +591,10 @@ BEGIN
     WHERE asin = p_asin;
 END;
 $$;
+
+-- =(4)========================================================================
+-- ======================= Add Customer Review ================================
+-- ============================================================================
 
 CREATE OR REPLACE PROCEDURE add_customer_review(
     p_asin VARCHAR,
@@ -521,9 +610,134 @@ BEGIN
 END;
 $$;
 
--- ==========================================================
---                        TRIGGERS
--- ==========================================================
+-- =(5)========================================================================
+-- ================== Accept Customer to be a Seller ==========================
+-- ============================================================================
+
+CREATE OR REPLACE PROCEDURE accept_customer_to_seller(p_customer_id INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    customer_username TEXT;
+    customer_email TEXT;
+    customer_password TEXT;
+    customer_fullname TEXT;
+    customer_phone TEXT;
+    customer_status BOOLEAN;
+    customer_profile_picture TEXT;
+    customer_login_method TEXT;
+    seller_id TEXT := 'S_' || p_customer_id;
+BEGIN
+    -- Get customer info
+    SELECT 
+        c.username,
+        cd.email,
+        cd.password_hash,
+        CONCAT(cd.first_name, ' ', cd.last_name),
+        cd.phone,
+        cd.status,
+        cd.profile_picture,
+        cd.login_method
+    INTO 
+        customer_username,
+        customer_email,
+        customer_password,
+        customer_fullname,
+        customer_phone,
+        customer_status,
+        customer_profile_picture,
+        customer_login_method
+    FROM customers c
+    JOIN customer_detail cd ON c.customer_id = cd.customer_id
+    WHERE c.customer_id = p_customer_id;
+
+    -- Deactivate customer account
+    UPDATE customer_detail SET status = false WHERE customer_id = p_customer_id;
+
+    -- Insert into sellers
+    INSERT INTO sellers (seller_id, seller_name)
+    VALUES (seller_id, customer_username);
+
+    -- Insert into seller_detail
+    INSERT INTO seller_detail (
+        seller_id, email, password_hash, contact_person, phone,
+        profile_picture, login_method, status
+    )
+    VALUES (
+        seller_id, customer_email, customer_password, customer_fullname, customer_phone,
+        customer_profile_picture, customer_login_method, true
+    );
+
+    -- Copy customer location to seller location
+    INSERT INTO seller_locations (
+        seller_id, country, city, state, zipcode, address_line1, address_line2
+    )
+    SELECT 
+        seller_id, country, city, state, zipcode, address_line1, address_line2
+    FROM customer_locations
+    WHERE customer_id = p_customer_id;
+
+    -- Update seller_requests table
+    UPDATE seller_requests
+    SET status = 'approved'
+    WHERE customer_id = p_customer_id;
+
+END;
+$$;
+
+-- =(6)========================================================================
+-- ============ Active and Deactivate Customer/Seller Account =================
+-- ============================================================================
+
+CREATE OR REPLACE PROCEDURE toggle_user_role_activation(
+    p_email VARCHAR,
+    p_role VARCHAR  -- 'customer' or 'seller'
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Normalize role
+    IF p_role NOT IN ('customer', 'seller') THEN
+        RAISE EXCEPTION 'Invalid role: %, must be eiter "customer" or "seller"', p_role;
+    END IF;
+
+    -- Activate customer and deactivate seller
+    IF p_role = 'customer' THEN
+        -- Activate customer
+        UPDATE customer_detail
+        SET status = true
+        WHERE email = p_email;
+
+        -- Deactivate seller if exists
+        UPDATE seller_detail
+        SET status = false
+        WHERE email = p_email;
+
+    -- Activate seller and deactivate customer
+    ELSIF p_role = 'seller' THEN
+        -- Activate seller
+        UPDATE seller_detail
+        SET status = true
+        WHERE email = p_email;
+
+        -- Deactivate customer if exists
+        UPDATE customer_detail
+        SET status = false
+        WHERE email = p_email;
+    END IF;
+END;
+$$;
+
+
+
+-- ****************************************************************************
+-- ***************************** TRIGGERS *************************************
+-- ****************************************************************************
+
+-- =(7)========================================================================
+-- ======================= Track Actions Timestamp ============================
+-- ============================================================================
+
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -557,10 +771,14 @@ BEFORE UPDATE ON customers
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
+-- ****************************************************************************
+-- ***************************** FUNCTIONS ************************************
+-- ****************************************************************************
 
--- ==========================================================
---                        FUNCTIONS
--- ==========================================================
+-- =(8)========================================================================
+-- ======================= Get Top Selling Products ===========================
+-- ============================================================================
+
 CREATE OR REPLACE FUNCTION get_top_selling_products(limit_count INT)
 RETURNS TABLE (
     asin VARCHAR,
@@ -575,6 +793,10 @@ BEGIN
     LIMIT limit_count;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =(9)========================================================================
+-- ======================= Get A Product Summary ==============================
+-- ============================================================================
 
 CREATE OR REPLACE FUNCTION get_product_summary(p_asin TEXT)
 RETURNS TABLE (
@@ -593,7 +815,8 @@ BEGIN
         b.name,
         m.name,
         pr.final_price,
-        pd.rating,        pd.description,
+        pd.rating,        
+        pd.description,
         md.image_url 
     FROM products p
     LEFT JOIN brands b ON p.brand_id = b.brand_id
@@ -604,6 +827,10 @@ BEGIN
     WHERE p.asin = p_asin;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =(10)=======================================================================
+-- ======================= Get A Customer History =============================
+-- ============================================================================
 
 CREATE OR REPLACE FUNCTION get_customer_order_history(p_customer_id INT)
 RETURNS TABLE (
@@ -630,6 +857,10 @@ BEGIN
     ORDER BY o.created_at DESC;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =(11)=======================================================================
+-- ====================== Get A Product By Category ===========================
+-- ============================================================================
 
 CREATE OR REPLACE FUNCTION get_products_by_category(p_category_name TEXT)
 RETURNS TABLE (
@@ -658,9 +889,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- ==========================================================
---                        VIEWS
--- ==========================================================
+-- ****************************************************************************
+-- ******************************* VIEWS **************************************
+-- ****************************************************************************
+
+-- =(12)=======================================================================
+-- ======================= Top 5 Expensive Products ===========================
+-- ============================================================================
+
 CREATE OR REPLACE VIEW top_5_expensive_products AS
 SELECT
     p.title,
@@ -675,20 +911,22 @@ LEFT JOIN manufacturers m ON p.manufacturer_id = m.manufacturer_id
 ORDER BY pr.final_price DESC
 LIMIT 5;
 
--- CREATE OR REPLACE VIEW products_with_no_reviews AS
--- SELECT
---     p.asin,
---     p.title,
---     p.availability,
---     pr.final_price
--- FROM products p
--- LEFT JOIN top_review r ON p.asin = r.asin
--- LEFT JOIN pricing pr ON p.asin = pr.asin
--- WHERE r.reviews_count IS NULL OR r.reviews_count = 0;
+CREATE OR REPLACE VIEW products_with_no_orders AS
+SELECT
+    p.asin,
+    p.title,
+    p.availability,
+    pr.final_price
+FROM products p
+LEFT JOIN pricing pr ON p.asin = pr.asin
+LEFT JOIN ordered_items oi ON p.asin = oi.asin
+WHERE oi.asin IS NULL;
 
--- ==========================================================
---                        INDEXS
--- ==========================================================
+
+-- ****************************************************************************
+-- ******************************* INDEXES ************************************
+-- ****************************************************************************
+
 CREATE INDEX idx_variations_asin ON variations(asin);
 CREATE INDEX idx_product_categories_category_id ON product_categories(category_id);
 CREATE INDEX idx_rankings_asin ON rankings(asin);
