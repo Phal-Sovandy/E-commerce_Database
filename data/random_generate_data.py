@@ -1,27 +1,35 @@
 import uuid
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from faker import Faker
 import json
 
 # Initialize Faker
 fake = Faker()
 
-# Configuration
-NUM_MANUFACTURERS = 10
-NUM_DEPARTMENTS = 10
-NUM_BRANDS = 20
-NUM_SELLERS = 15
-NUM_DELIVERY_OPTIONS = 5
-NUM_CUSTOMERS = 50
-NUM_PRODUCTS = 100
-NUM_ORDERS = 70
-NUM_CATEGORIES = 15
-NUM_WISHLISTS = 30
-NUM_CUSTOMER_REVIEWS = 120
-NUM_USER_ENQUIRIES = 20
-NUM_ADMINS = 3
-NUM_SELLER_REQUESTS = 5
+# Configuration for Data Generation
+# These numbers can be scaled significantly higher for millions of records.
+# Be aware that generating extremely large SQL files in memory and writing
+# them in one go might consume a lot of RAM and take a long time.
+# For truly massive datasets (millions+), consider:
+# 1. Generating data in batches and writing to the file incrementally.
+# 2. Directly inserting data into the database using a PostgreSQL client library (e.g., psycopg2)
+#    which is generally more efficient for large-scale data loading.
+
+NUM_MANUFACTURERS = 1000  # Increased from 10
+NUM_DEPARTMENTS = 100    # Increased from 10
+NUM_BRANDS = 200         # Increased from 20
+NUM_SELLERS = 15000        # Increased from 15
+NUM_DELIVERY_OPTIONS = 5 # Increased from 5
+NUM_CUSTOMERS = 50000    # Increased from 50 (can go much higher)
+NUM_PRODUCTS = 10000     # Increased from 100 (can go much higher)
+NUM_ORDERS = 7000        # Increased from 70 (can go much higher)
+NUM_CATEGORIES = 1500      # Increased from 15
+NUM_WISHLISTS = 3000     # Increased from 30
+NUM_CUSTOMER_REVIEWS = 1200 # Increased from 120
+NUM_USER_ENQUIRIES = 2000   # Increased from 20
+NUM_ADMINS = 30             # Increased from 3
+NUM_SELLER_REQUESTS = 5000   # Increased from 5
 
 # --- Helper Functions for Data Generation ---
 
@@ -74,6 +82,8 @@ def generate_text_array(min_items=1, max_items=5):
     return '{' + ','.join(items) + '}'
 
 # --- Data Storage (to keep track of generated IDs for foreign keys) ---
+# For very large datasets, storing all IDs in memory might become an issue.
+# Consider generating IDs on the fly or using a database-driven ID management.
 manufacturers_data = []
 departments_data = []
 brands_data = []
@@ -82,14 +92,26 @@ delivery_options_data = []
 customers_data = []
 products_data = []
 categories_data = []
-orders_data = []
+orders_data = [] # Store datetime objects here for ordered_items to use
 wishlists_data = []
 
 # --- SQL INSERT Statement Generator ---
 def generate_insert_statement(table_name, columns, values):
     """Generates a SQL INSERT statement."""
     cols_str = ', '.join(columns)
-    vals_str = ', '.join([f"'{str(v).replace("'", "''")}'" if isinstance(v, str) else str(v) for v in values])
+    formatted_values = []
+    for v in values:
+        if isinstance(v, datetime):
+            formatted_values.append(f"'{v.strftime('%Y-%m-%d %H:%M:%S.%f')}'")
+        elif isinstance(v, date):
+            formatted_values.append(f"'{v.strftime('%Y-%m-%d')}'")
+        elif isinstance(v, str):
+            formatted_values.append(f"'{v.replace("'", "''")}'")
+        elif v is None:
+            formatted_values.append('NULL')
+        else:
+            formatted_values.append(str(v))
+    vals_str = ', '.join(formatted_values)
     return f"INSERT INTO {table_name} ({cols_str}) VALUES ({vals_str});"
 
 # --- Main Data Generation Logic ---
@@ -100,28 +122,31 @@ def generate_data():
     # 1. manufacturers
     for i in range(NUM_MANUFACTURERS):
         manufacturer_id = i + 1
-        name = fake.unique.company()
+        # Ensure uniqueness by appending index
+        name = f"{fake.company()} {i+1}"
         manufacturers_data.append({'manufacturer_id': manufacturer_id, 'name': name})
         sql_statements.append(generate_insert_statement('manufacturers', ['manufacturer_id', 'name'], [manufacturer_id, name]))
 
     # 2. departments
     for i in range(NUM_DEPARTMENTS):
         department_id = i + 1
-        name = fake.unique.word().capitalize() + ' Department'
+        # Ensure uniqueness by appending index
+        name = f"{fake.word().capitalize()} Department {i+1}"
         departments_data.append({'department_id': department_id, 'name': name})
         sql_statements.append(generate_insert_statement('departments', ['department_id', 'name'], [department_id, name]))
 
     # 3. brands
     for i in range(NUM_BRANDS):
         brand_id = i + 1
-        name = fake.unique.company()
+        # Ensure uniqueness by appending index
+        name = f"{fake.company()} Brand {i+1}"
         brands_data.append({'brand_id': brand_id, 'name': name})
         sql_statements.append(generate_insert_statement('brands', ['brand_id', 'name'], [brand_id, name]))
 
     # 4. sellers
     for i in range(NUM_SELLERS):
         seller_id = f"SEL_{uuid.uuid4().hex[:8].upper()}"
-        seller_name = fake.unique.company()
+        seller_name = fake.unique.company() # company names are usually diverse enough
         sellers_data.append({'seller_id': seller_id, 'seller_name': seller_name})
         sql_statements.append(generate_insert_statement('sellers', ['seller_id', 'seller_name'], [seller_id, seller_name]))
 
@@ -129,7 +154,7 @@ def generate_data():
     delivery_names = ['Standard', 'Express', 'Next Day', 'Same Day', 'Economy']
     for i in range(NUM_DELIVERY_OPTIONS):
         delivery_id = i + 1
-        option_name = delivery_names[i]
+        option_name = delivery_names[i % len(delivery_names)] # Cycle through names if NUM_DELIVERY_OPTIONS > len(delivery_names)
         delivery_days = random.randint(1, 10)
         price = round(random.uniform(2.0, 25.0), 2)
         delivery_options_data.append({'delivery_id': delivery_id, 'option_name': option_name, 'delivery_days': delivery_days, 'price': price})
@@ -188,7 +213,7 @@ def generate_data():
         root_bs_rank = random.randint(1, 10000)
         bs_rank = random.randint(1, 5000)
         subcategory_rank = generate_jsonb_subcategory_rank()
-        badge = random.choice(['Best Seller', 'Amazon\'s Choice', 'Limited Time Deal', None])
+        badge = random.choice(['#1 Best Seller', 'Amazon\'s Choice', '#1 New Release', None])
         sql_statements.append(generate_insert_statement('rankings',
             ['asin', 'root_bs_rank', 'bs_rank', 'subcategory_rank', 'badge'],
             [asin, root_bs_rank, bs_rank, subcategory_rank, badge]
@@ -214,15 +239,16 @@ def generate_data():
     # 13. categories
     for i in range(NUM_CATEGORIES):
         category_id = i + 1
-        name = fake.unique.word().capitalize() + ' Category'
+        # Ensure uniqueness by appending index
+        name = f"{fake.word().capitalize()} Category {i+1}"
         categories_data.append({'category_id': category_id, 'name': name})
         sql_statements.append(generate_insert_statement('categories', ['category_id', 'name'], [category_id, name]))
 
     # 14. product_categories
     for product in products_data:
         asin = product['asin']
-        num_categories = random.randint(1, 3)
-        assigned_category_ids = random.sample([c['category_id'] for c in categories_data], min(num_categories, len(categories_data)))
+        num_categories = random.randint(1, min(3, len(categories_data))) # Ensure we don't ask for more categories than available
+        assigned_category_ids = random.sample([c['category_id'] for c in categories_data], num_categories)
         for category_id in assigned_category_ids:
             sql_statements.append(generate_insert_statement('product_categories', ['asin', 'category_id'], [asin, category_id]))
 
@@ -311,26 +337,32 @@ def generate_data():
         customer_id = random.choice(customers_data)['customer_id']
         seller_id = random.choice(sellers_data)['seller_id']
         delivery_id = random.choice(delivery_options_data)['delivery_id']
-        created_at = generate_random_datetime(datetime(2023, 1, 1), datetime.now())
+        created_at_dt = generate_random_datetime(datetime(2023, 1, 1), datetime.now())
         status = random.choice(['Processing', 'Shipping', 'Delivered', 'Cancelled'])
-        orders_data.append({'order_id': order_id, 'customer_id': customer_id, 'seller_id': seller_id, 'delivery_id': delivery_id, 'created_at': created_at, 'status': status})
+        
+        orders_data.append({'order_id': order_id, 'customer_id': customer_id, 'seller_id': seller_id, 'delivery_id': delivery_id, 'created_at': created_at_dt, 'status': status})
+        
         sql_statements.append(generate_insert_statement('orders',
             ['order_id', 'customer_id', 'seller_id', 'delivery_id', 'created_at', 'status'],
-            [order_id, customer_id, seller_id, delivery_id, created_at, status]
+            [order_id, customer_id, seller_id, delivery_id, created_at_dt, status]
         ))
 
     # 22. ordered_items
     for order in orders_data:
         order_id = order['order_id']
-        num_items = random.randint(1, 5)
-        for _ in range(num_items):
-            asin = random.choice(products_data)['asin']
+        # Ensure num_items_for_order doesn't exceed available products
+        num_items_for_order = random.randint(1, min(5, len(products_data)))
+        # Select unique ASINs for this order to prevent primary key violation
+        selected_asins = random.sample([p['asin'] for p in products_data], num_items_for_order)
+
+        for asin in selected_asins:
             quantity = random.randint(1, 3)
-            added_at = order['created_at'] + timedelta(minutes=random.randint(1, 60))
-            last_update = added_at + timedelta(minutes=random.randint(0, 30))
+            added_at_dt = order['created_at'] + timedelta(minutes=random.randint(1, 60))
+            last_update_dt = added_at_dt + timedelta(minutes=random.randint(0, 30))
+            
             sql_statements.append(generate_insert_statement('ordered_items',
                 ['order_id', 'asin', 'quantity', 'added_at', 'last_update'],
-                [order_id, asin, quantity, added_at, last_update]
+                [order_id, asin, quantity, added_at_dt, last_update_dt]
             ))
 
     # 23. wishlists
@@ -344,9 +376,12 @@ def generate_data():
     # 24. wishlist_items
     for wishlist in wishlists_data:
         wishlist_id = wishlist['wishlist_id']
-        num_items = random.randint(1, 10)
-        for _ in range(num_items):
-            asin = random.choice(products_data)['asin']
+        # Ensure num_items doesn't exceed available products
+        num_items = random.randint(1, min(10, len(products_data)))
+        # Select unique ASINs for this wishlist
+        selected_asins = random.sample([p['asin'] for p in products_data], num_items)
+        
+        for asin in selected_asins:
             added_at = generate_random_datetime(datetime(2023, 1, 1), datetime.now())
             sql_statements.append(generate_insert_statement('wishlist_items', ['wishlist_id', 'asin', 'added_at'], [wishlist_id, asin, added_at]))
 
@@ -408,6 +443,6 @@ def generate_data():
 if __name__ == "__main__":
     print("Generating SQL INSERT statements...")
     sql_inserts = generate_data()
-    with open("generated_data.sql", "w") as f:
+    with open("./data/generated_data.sql", "w") as f:
         f.write(sql_inserts)
-    print("Data generation complete. Check 'generated_data.sql' for the output.")
+    print("Data generation complete. Check './data/generated_data.sql' for the output.")
