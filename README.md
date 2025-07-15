@@ -60,7 +60,7 @@ The project is organized into several directories to logically separate differen
 ├── views/
 │   └── views.sql                # SQL script for creating database views
 ├── .gitignore                   # Specifies intentionally untracked files to ignore
-├── CONTRIBUTING.md              # Guidelines for contributing to the project
+├── LICENSE                      # This repository license
 └── README.md                    # This README file
 ```
 
