@@ -6,7 +6,7 @@ SELECT * FROM pg_stat_activity;
 -- ============================================================================
 -- Database current disk space usage 
 -- ============================================================================
-SELECT pg_size_prety(pg_database_size('ecommercewebsite');
+SELECT pg_size_prety(pg_database_size('ecommercewebsite'));
 
 -- ============================================================================
 -- Long run query
