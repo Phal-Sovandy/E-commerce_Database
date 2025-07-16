@@ -1,0 +1,13 @@
+# LOCATE THE 'postgresql.conf'
+# Connect to the psql using (eg. 'psql -U postgres -W')
+SHOW config_file;
+
+# Write these config
+archive_mode=on
+archive_command='cp %p /var/lib/postgresql/wal_archive/%f'
+wal_level=replica
+archive_timeout=300
+
+# RUN THIS TO AUTOMATICALLY REMOVE THE BACKUP FILES THAT ARE BESIDE THE LAST 7 DAYS
+# NOTE: Replace this (/var/lib/postgresql/wal_archive/) with the path to 'postgresql.conf'
+find /var/lib/postgresql/wal_archive/ -type f -mtime +7 -exec rm -f {} \;

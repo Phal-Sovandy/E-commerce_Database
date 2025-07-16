@@ -1,0 +1,5 @@
+# RUN THIS TO PERFORM FULLBACKUP (SHOULD RUN ONCE EVERY WEEK)
+pg_basebackup -U postgres -D /backups/base/$(date +%F) -Ft -z -P
+
+# RUN THIS TO AUTOMATICALLY REMOVE THE BACKUP FILES THAT ARE BESIDE THE LAST 4 WEEKS
+find /backups/base/ -maxdepth 1 -type d -mtime +28 -exec rm -rf {} \;
