@@ -45,6 +45,10 @@ This project provides a comprehensive database schema and associated scripts for
 The project is organized into several directories to logically separate different components of the database setup and data management.
 ```bash
 .
+├── backups/
+|   ├── base/                    # Store the .backup files from the pg_dump
+|   ├── BACKUP_RESTORE.md        # Guide on how to backup and restore the database
+|
 ├── data/
 │   ├── data-products.csv        # Raw CSV data for product import
 │   ├── import_raw_csv.sql       # SQL script to import data from CSV into rawData table, then to main tables
