@@ -209,8 +209,8 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE ordered_items (
-    order_id INT NOT NULL REFERENCES orders(order_id),
-    asin VARCHAR(20) NOT NULL REFERENCES products(asin),
+    order_id INT NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+    asin VARCHAR(20) NOT NULL REFERENCES products(asin) ON DELETE SET NULL,
     quantity INT NOT NULL CHECK (quantity > 0),
     added_at TIMESTAMP DEFAULT NOW(),
     last_update TIMESTAMP DEFAULT NOW(),
@@ -243,7 +243,7 @@ CREATE TABLE wishlist_items (
 CREATE TABLE customer_reviews (
     review_id SERIAL PRIMARY KEY,
     asin VARCHAR(20) REFERENCES products(asin) ON DELETE CASCADE,
-    customer_id INT REFERENCES customers(customer_id),
+    customer_id INT REFERENCES customers(customer_id) ON DELETE CASCADE,
     rating NUMERIC(2,1) CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at TIMESTAMP DEFAULT NOW()
