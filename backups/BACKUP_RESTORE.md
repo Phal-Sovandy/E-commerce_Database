@@ -101,5 +101,5 @@ Restore to a new database example:
 
 ```bash
 createdb -U postgres ecommercewebsite_restore
-pg_restore -U postgres -d ecommercewebsite_restore /Users/macbook/Desktop/E-commerce_Database/backups/logical/ecommercewebsite-2025-07-16.backup
+pg_restore -U postgres -d ecommercewebsite_restore /Users/macbook/Desktop/E-commerce_Database/backups/base/ecommercewebsite-2025-07-18.backup
 ```

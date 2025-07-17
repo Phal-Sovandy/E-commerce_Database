@@ -64,31 +64,37 @@ CREATE OR REPLACE PROCEDURE place_order(
     IN p_customer_id INT,
     IN p_seller_id TEXT,
     IN p_delivery_id INT,
-    IN p_items JSONB
+    IN p_status VARCHAR,
+    OUT new_order_id INT
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    new_order_id INT;
-    item JSONB;
 BEGIN
-    INSERT INTO orders (customer_id, seller_id, delivery_id)
-    VALUES (p_customer_id, p_seller_id, p_delivery_id)
+    INSERT INTO orders (customer_id, seller_id, delivery_id, status)
+    VALUES (p_customer_id, p_seller_id, p_delivery_id, p_status)
     RETURNING order_id INTO new_order_id;
-
-    FOR item IN SELECT * FROM jsonb_array_elements(p_items)
-    LOOP
-        INSERT INTO ordered_items (order_id, asin, quantity)
-        VALUES (
-            new_order_id,
-            item->>'asin',
-            (item->>'quantity')::INT
-        );
-    END LOOP;
 END;
 $$;
 
 -- =(3)========================================================================
+-- ========================== Add Item to Order ===============================
+-- ============================================================================
+
+CREATE OR REPLACE PROCEDURE add_order_item(
+    IN p_order_id INT,
+    IN p_asin VARCHAR,
+    IN p_quantity INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO ordered_items (order_id, asin, quantity)
+    VALUES (p_order_id, p_asin, p_quantity);
+END;
+$$;
+
+
+-- =(4)========================================================================
 -- ======================= Update Product Price ===============================
 -- ============================================================================
 
@@ -106,7 +112,7 @@ BEGIN
 END;
 $$;
 
--- =(4)========================================================================
+-- =(5)========================================================================
 -- ======================= Add Customer Review ================================
 -- ============================================================================
 
@@ -124,7 +130,7 @@ BEGIN
 END;
 $$;
 
--- =(5)========================================================================
+-- =(6)========================================================================
 -- ================== Accept Customer to be a Seller ==========================
 -- ============================================================================
 
@@ -199,7 +205,7 @@ BEGIN
 END;
 $$;
 
--- =(6)========================================================================
+-- =(7)========================================================================
 -- ============ Active and Deactivate Customer/Seller Account =================
 -- ============================================================================
 
@@ -241,6 +247,3 @@ BEGIN
     END IF;
 END;
 $$;
-
-
-
