@@ -1,4 +1,3 @@
-
 -- ****************************************************************************
 -- ***************************** FUNCTIONS ************************************
 -- ****************************************************************************
@@ -14,9 +13,9 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT asin, SUM(quantity) AS total_quantity
-    FROM ordered_items
-    GROUP BY asin
+    SELECT oi.asin, SUM(oi.quantity) AS total_quantity
+    FROM ordered_items oi
+    GROUP BY oi.asin
     ORDER BY total_quantity DESC
     LIMIT limit_count;
 END;
@@ -65,7 +64,7 @@ RETURNS TABLE (
     order_id INT,
     order_date TIMESTAMP,
     seller_name TEXT,
-    delivery_option TEXT,
+    delivery_option VARCHAR(10),
     total_items BIGINT
 ) AS $$
 BEGIN

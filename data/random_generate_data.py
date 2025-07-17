@@ -16,20 +16,20 @@ fake = Faker()
 # 2. Directly inserting data into the database using a PostgreSQL client library (e.g., psycopg2)
 #    which is generally more efficient for large-scale data loading.
 
-NUM_MANUFACTURERS = 1000  # Increased from 10
-NUM_DEPARTMENTS = 100    # Increased from 10
-NUM_BRANDS = 200         # Increased from 20
-NUM_SELLERS = 15000        # Increased from 15
-NUM_DELIVERY_OPTIONS = 5 # Increased from 5
-NUM_CUSTOMERS = 50000    # Increased from 50 (can go much higher)
-NUM_PRODUCTS = 10000     # Increased from 100 (can go much higher)
-NUM_ORDERS = 7000        # Increased from 70 (can go much higher)
-NUM_CATEGORIES = 1500      # Increased from 15
-NUM_WISHLISTS = 3000     # Increased from 30
-NUM_CUSTOMER_REVIEWS = 1200 # Increased from 120
-NUM_USER_ENQUIRIES = 2000   # Increased from 20
-NUM_ADMINS = 30             # Increased from 3
-NUM_SELLER_REQUESTS = 5000   # Increased from 5
+NUM_MANUFACTURERS = 10000
+NUM_DEPARTMENTS = 1000
+NUM_BRANDS = 2000
+NUM_SELLERS = 15000
+NUM_DELIVERY_OPTIONS = 5 # Increased from 5 (Over 5 it duplicate option name)
+NUM_CUSTOMERS = 10000
+NUM_PRODUCTS = 100000
+NUM_ORDERS = 10000
+NUM_CATEGORIES = 5000
+NUM_WISHLISTS = 3000
+NUM_CUSTOMER_REVIEWS = 50000
+NUM_USER_ENQUIRIES = 10000
+NUM_ADMINS = 50
+NUM_SELLER_REQUESTS = 50000
 
 # --- Helper Functions for Data Generation ---
 
