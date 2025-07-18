@@ -75,7 +75,7 @@ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO guests;
 -- ============================================================================
 -- =========================== VIEWS PRIVILEGES ===============================
 -- ============================================================================
-GRANT SELECT ON top_5_expensive_products TO sellers, customers, guests;
+GRANT SELECT ON top_10_expensive_products TO sellers, customers, guests;
 GRANT SELECT ON products_with_no_orders TO sellers, customers, guests;
 
 

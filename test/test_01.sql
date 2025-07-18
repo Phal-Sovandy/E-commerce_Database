@@ -35,7 +35,7 @@ SELECT * FROM products WHERE asin = 'TEST123ASIN';
 -- Step 1: Call with correct status casing
 CALL place_order(1, 'A105EAKJYOP8OP', 1, 'Processing', 1);
 
-SELECT * FROM orders ORDER BY created_date DESC;
+SELECT * FROM orders ORDER BY created_at DESC;
 
 -- Step 2: Add item
 CALL add_order_item(11, 'TEST123ASIN', 2);
