@@ -23,7 +23,8 @@
     * [6.9. Become Seller Requests Table](#69-become-seller-requests-table)
     * [6.10. Website Admin Account Table](#610-website-admin-account-table)
 7.  [Contributing](#7-contributing)
-8.  [License](#8-license)
+8.  [References](#8-references)
+9.  [License](#9-license)
 
 ---
 
@@ -309,6 +310,10 @@ Manages administrative access to the platform.
 
 Contributions are welcome! If you have suggestions for improvements, new features, or bug fixes, please open an issue or submit a pull request.
 
-## 8. License
+## 8. References 
+
+The dataset used in this project was obtained from the [eCommerce dataset samples by Luminati](https://github.com/luminati-io/eCommerce-dataset-samples.git).
+
+## 9. License
 
 This project is open-source and available under the [MIT License](LICENSE).
