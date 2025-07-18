@@ -8,19 +8,11 @@ import json
 fake = Faker()
 
 # Configuration for Data Generation
-# These numbers can be scaled significantly higher for millions of records.
-# Be aware that generating extremely large SQL files in memory and writing
-# them in one go might consume a lot of RAM and take a long time.
-# For truly massive datasets (millions+), consider:
-# 1. Generating data in batches and writing to the file incrementally.
-# 2. Directly inserting data into the database using a PostgreSQL client library (e.g., psycopg2)
-#    which is generally more efficient for large-scale data loading.
-
 NUM_MANUFACTURERS = 10000
 NUM_DEPARTMENTS = 1000
 NUM_BRANDS = 2000
 NUM_SELLERS = 15000
-NUM_DELIVERY_OPTIONS = 5 # Increased from 5 (Over 5 it duplicate option name)
+NUM_DELIVERY_OPTIONS = 5
 NUM_CUSTOMERS = 10000
 NUM_PRODUCTS = 100000
 NUM_ORDERS = 10000
@@ -31,6 +23,30 @@ NUM_USER_ENQUIRIES = 10000
 NUM_ADMINS = 50
 NUM_SELLER_REQUESTS = 50000
 
+# List of real image URLs that work
+REAL_IMAGE_URLS = [
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+    "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
+    "https://images.unsplash.com/photo-1585386959984-a4155224a1ad",
+    "https://images.unsplash.com/photo-1584917865442-de89df76afd3",
+    "https://images.unsplash.com/photo-1546868871-7041f2a55e12",
+    "https://images.unsplash.com/photo-1560343090-f0409e92791a",
+    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f",
+    "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6",
+    "https://images.unsplash.com/photo-1491553895911-0055eca6402d",
+    "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
+    "https://images.unsplash.com/photo-1581235720704-06d3acfcb36f",
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+    "https://images.unsplash.com/photo-1563903530908-afdd155d057a",
+    "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111",
+    "https://images.unsplash.com/photo-1503602642458-232111445657",
+    "https://images.unsplash.com/photo-1513112300738-bbbf7b1b3c15",
+    "https://images.unsplash.com/photo-1517487881594-2787fef5ebf7",
+    "https://images.unsplash.com/photo-1517686469429-8bdb88b9f907",
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
+]
+
 # --- Helper Functions for Data Generation ---
 
 def generate_asin():
@@ -39,7 +55,7 @@ def generate_asin():
 
 def generate_phone_number():
     """Generates a fake phone number."""
-    return fake.phone_number()[:20] # Ensure it fits VARCHAR(20)
+    return fake.phone_number()[:20]
 
 def generate_password_hash():
     """Generates a simple fake password hash."""
@@ -77,13 +93,20 @@ def generate_jsonb_subcategory_rank():
     return json.dumps(ranks)
 
 def generate_text_array(min_items=1, max_items=5):
-    """Generates a PostgreSQL TEXT[] compatible string."""
+    """Generates a PostgreSQL TEXT[] compatible string of random features"""
     items = [f'"{fake.sentence(nb_words=3).strip(".")}"' for _ in range(random.randint(min_items, max_items))]
     return '{' + ','.join(items) + '}'
 
-# --- Data Storage (to keep track of generated IDs for foreign keys) ---
-# For very large datasets, storing all IDs in memory might become an issue.
-# Consider generating IDs on the fly or using a database-driven ID management.
+def get_random_image_url():
+    """Returns a random working image URL from our list"""
+    return random.choice(REAL_IMAGE_URLS)
+
+def generate_image_url_array(min_items=1, max_items=5):
+    """Generates a PostgreSQL TEXT[] compatible string of image URLs"""
+    items = [f'"{get_random_image_url()}"' for _ in range(random.randint(min_items, max_items))]
+    return '{' + ','.join(items) + '}'
+
+# --- Data Storage ---
 manufacturers_data = []
 departments_data = []
 brands_data = []
@@ -92,7 +115,7 @@ delivery_options_data = []
 customers_data = []
 products_data = []
 categories_data = []
-orders_data = [] # Store datetime objects here for ordered_items to use
+orders_data = []
 wishlists_data = []
 
 # --- SQL INSERT Statement Generator ---
@@ -122,7 +145,6 @@ def generate_data():
     # 1. manufacturers
     for i in range(NUM_MANUFACTURERS):
         manufacturer_id = i + 1
-        # Ensure uniqueness by appending index
         name = f"{fake.company()} {i+1}"
         manufacturers_data.append({'manufacturer_id': manufacturer_id, 'name': name})
         sql_statements.append(generate_insert_statement('manufacturers', ['manufacturer_id', 'name'], [manufacturer_id, name]))
@@ -130,7 +152,6 @@ def generate_data():
     # 2. departments
     for i in range(NUM_DEPARTMENTS):
         department_id = i + 1
-        # Ensure uniqueness by appending index
         name = f"{fake.word().capitalize()} Department {i+1}"
         departments_data.append({'department_id': department_id, 'name': name})
         sql_statements.append(generate_insert_statement('departments', ['department_id', 'name'], [department_id, name]))
@@ -138,7 +159,6 @@ def generate_data():
     # 3. brands
     for i in range(NUM_BRANDS):
         brand_id = i + 1
-        # Ensure uniqueness by appending index
         name = f"{fake.company()} Brand {i+1}"
         brands_data.append({'brand_id': brand_id, 'name': name})
         sql_statements.append(generate_insert_statement('brands', ['brand_id', 'name'], [brand_id, name]))
@@ -146,7 +166,7 @@ def generate_data():
     # 4. sellers
     for i in range(NUM_SELLERS):
         seller_id = f"SEL_{uuid.uuid4().hex[:8].upper()}"
-        seller_name = fake.unique.company() # company names are usually diverse enough
+        seller_name = fake.unique.company()
         sellers_data.append({'seller_id': seller_id, 'seller_name': seller_name})
         sql_statements.append(generate_insert_statement('sellers', ['seller_id', 'seller_name'], [seller_id, seller_name]))
 
@@ -154,7 +174,7 @@ def generate_data():
     delivery_names = ['Standard', 'Express', 'Next Day', 'Same Day', 'Economy']
     for i in range(NUM_DELIVERY_OPTIONS):
         delivery_id = i + 1
-        option_name = delivery_names[i % len(delivery_names)] # Cycle through names if NUM_DELIVERY_OPTIONS > len(delivery_names)
+        option_name = delivery_names[i % len(delivery_names)]
         delivery_days = random.randint(1, 10)
         price = round(random.uniform(2.0, 25.0), 2)
         delivery_options_data.append({'delivery_id': delivery_id, 'option_name': option_name, 'delivery_days': delivery_days, 'price': price})
@@ -167,15 +187,28 @@ def generate_data():
         customers_data.append({'customer_id': customer_id, 'username': username})
         sql_statements.append(generate_insert_statement('customers', ['customer_id', 'username'], [customer_id, username]))
 
-    # 7. products
+    # 7. products - assign each product to one seller during creation
     for i in range(NUM_PRODUCTS):
         asin = generate_asin()
         title = fake.catch_phrase() + ' ' + fake.word().capitalize()
         brand_id = random.choice(brands_data)['brand_id'] if brands_data else None
         manufacturer_id = random.choice(manufacturers_data)['manufacturer_id'] if manufacturers_data else None
         availability = random.choice(['In Stock', 'Out of Stock', 'Pre-order'])
-        products_data.append({'asin': asin, 'title': title, 'brand_id': brand_id, 'manufacturer_id': manufacturer_id, 'availability': availability})
-        sql_statements.append(generate_insert_statement('products', ['asin', 'title', 'brand_id', 'manufacturer_id', 'availability'], [asin, title, brand_id, manufacturer_id, availability]))
+        seller_id = random.choice(sellers_data)['seller_id'] if sellers_data else None
+        
+        products_data.append({
+            'asin': asin, 
+            'title': title, 
+            'brand_id': brand_id, 
+            'manufacturer_id': manufacturer_id, 
+            'availability': availability,
+            'seller_id': seller_id
+        })
+        
+        sql_statements.append(generate_insert_statement('products', 
+            ['asin', 'title', 'brand_id', 'manufacturer_id', 'availability'], 
+            [asin, title, brand_id, manufacturer_id, availability]
+        ))
 
     # 8. product_details
     for product in products_data:
@@ -219,12 +252,13 @@ def generate_data():
             [asin, root_bs_rank, bs_rank, subcategory_rank, badge]
         ))
 
-    # 11. media
+    # 11. media - use real image URLs
     for product in products_data:
         asin = product['asin']
-        image_url = fake.image_url()
-        images = generate_text_array(min_items=1, max_items=5)
-        images_count = random.randint(1, 5)
+        image_url = get_random_image_url()
+        images = generate_image_url_array(min_items=1, max_items=5)
+        # Count the items by splitting the PostgreSQL array string
+        images_count = len(images[1:-1].split(','))  # Remove {} and split by commas
         sql_statements.append(generate_insert_statement('media',
             ['asin', 'image_url', 'images', 'images_count'],
             [asin, image_url, images, images_count]
@@ -239,7 +273,6 @@ def generate_data():
     # 13. categories
     for i in range(NUM_CATEGORIES):
         category_id = i + 1
-        # Ensure uniqueness by appending index
         name = f"{fake.word().capitalize()} Category {i+1}"
         categories_data.append({'category_id': category_id, 'name': name})
         sql_statements.append(generate_insert_statement('categories', ['category_id', 'name'], [category_id, name]))
@@ -247,24 +280,23 @@ def generate_data():
     # 14. product_categories
     for product in products_data:
         asin = product['asin']
-        num_categories = random.randint(1, min(3, len(categories_data))) # Ensure we don't ask for more categories than available
+        num_categories = random.randint(1, min(3, len(categories_data)))
         assigned_category_ids = random.sample([c['category_id'] for c in categories_data], num_categories)
         for category_id in assigned_category_ids:
             sql_statements.append(generate_insert_statement('product_categories', ['asin', 'category_id'], [asin, category_id]))
 
     # 15. variations
     for product in products_data:
-        if random.random() < 0.3: # Only some products have variations
+        if random.random() < 0.3:
             asin = product['asin']
             variations = generate_jsonb_variations()
             sql_statements.append(generate_insert_statement('variations', ['asin', 'variations'], [asin, variations]))
 
-    # 16. product_sellers
+    # 16. product_sellers - now each product has exactly one seller
     for product in products_data:
         asin = product['asin']
-        num_sellers = random.randint(1, min(3, len(sellers_data)))
-        assigned_seller_ids = random.sample([s['seller_id'] for s in sellers_data], num_sellers)
-        for seller_id in assigned_seller_ids:
+        seller_id = product['seller_id']
+        if seller_id:
             sql_statements.append(generate_insert_statement('product_sellers', ['asin', 'seller_id'], [asin, seller_id]))
 
     # 17. seller_detail
@@ -335,7 +367,8 @@ def generate_data():
     for i in range(NUM_ORDERS):
         order_id = i + 1
         customer_id = random.choice(customers_data)['customer_id']
-        seller_id = random.choice(sellers_data)['seller_id']
+        product = random.choice(products_data)
+        seller_id = product['seller_id']
         delivery_id = random.choice(delivery_options_data)['delivery_id']
         created_at_dt = generate_random_datetime(datetime(2023, 1, 1), datetime.now())
         status = random.choice(['Processing', 'Shipping', 'Delivered', 'Cancelled'])
@@ -350,10 +383,14 @@ def generate_data():
     # 22. ordered_items
     for order in orders_data:
         order_id = order['order_id']
-        # Ensure num_items_for_order doesn't exceed available products
-        num_items_for_order = random.randint(1, min(5, len(products_data)))
-        # Select unique ASINs for this order to prevent primary key violation
-        selected_asins = random.sample([p['asin'] for p in products_data], num_items_for_order)
+        seller_id = order['seller_id']
+        
+        seller_products = [p for p in products_data if p['seller_id'] == seller_id]
+        if not seller_products:
+            continue
+            
+        num_items_for_order = random.randint(1, min(5, len(seller_products)))
+        selected_asins = random.sample([p['asin'] for p in seller_products], num_items_for_order)
 
         for asin in selected_asins:
             quantity = random.randint(1, 3)
@@ -376,9 +413,7 @@ def generate_data():
     # 24. wishlist_items
     for wishlist in wishlists_data:
         wishlist_id = wishlist['wishlist_id']
-        # Ensure num_items doesn't exceed available products
         num_items = random.randint(1, min(10, len(products_data)))
-        # Select unique ASINs for this wishlist
         selected_asins = random.sample([p['asin'] for p in products_data], num_items)
         
         for asin in selected_asins:

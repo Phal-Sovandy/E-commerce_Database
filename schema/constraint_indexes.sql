@@ -29,7 +29,7 @@ ALTER TABLE seller_locations ADD FOREIGN KEY (seller_id) REFERENCES seller_detai
 -- product_sellers
 ALTER TABLE product_sellers ADD FOREIGN KEY (asin) REFERENCES products(asin) ON DELETE CASCADE;
 ALTER TABLE product_sellers ADD FOREIGN KEY (seller_id) REFERENCES sellers(seller_id) ON DELETE CASCADE;
-ALTER TABLE product_sellers ADD CONSTRAINT unique_product_seller_delivery UNIQUE (asin, seller_id);
+ALTER TABLE product_sellers ADD CONSTRAINT unique_product UNIQUE (asin);
 
 -- customer_detail, customer_locations
 ALTER TABLE customer_detail ADD FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE;
