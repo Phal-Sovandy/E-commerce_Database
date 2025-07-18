@@ -48,7 +48,7 @@ The project is organized into several directories to logically separate differen
 .
 ├── backups/
 |   ├── base/                    # Store the .backup files from the pg_dump
-|   ├── BACKUP_RESTORE.md        # Guide on how to backup and restore the database
+|   └── BACKUP_RESTORE.md        # Guide on how to backup and restore the database
 |
 ├── data/
 │   ├── data-products.csv        # Raw CSV data for product import
@@ -60,6 +60,10 @@ The project is organized into several directories to logically separate differen
 │   ├── triggers.sql             # SQL scripts for database triggers
 │   └── delete_all_data.sql      # SQL script for clearing all data (use with caution)
 ├── schema/
+│   └── diagram/                 # Contain all database schema and diagram
+│   │  ├── Entity Relational Diagram.png
+│   │  └── Relation Diagram.png
+│   │
 │   ├── create_tables.sql        # SQL script for creating all database tables
 │   └── constraint_indexes.sql   # SQL script for adding primary keys, foreign keys, and indexes
 ├── views/
@@ -225,12 +229,14 @@ This method is ideal for quickly populating the database with synthetic data for
         (For Windows users, you might need to use `python` instead of `python3`.)
 
 ## 6. Database Schema Overview
-
 The `ecommercewebsite` database is structured to support a wide range of e-commerce operations. Below is a detailed breakdown of the major table groups:
+___
+### Entity Relational Diagram
 ![ERD Digram](./schema//diagram//Entity%20Relational%20Diagram.png)
-----
+___
+### Relational Schema
 ![RD Digram](./schema//diagram/Relational%20Diagram.png)
-
+___
 ### 6.1. Product and Related Tables
 
 These tables are central to managing product inventory and attributes.
