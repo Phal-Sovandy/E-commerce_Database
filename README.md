@@ -227,6 +227,9 @@ This method is ideal for quickly populating the database with synthetic data for
 ## 6. Database Schema Overview
 
 The `ecommercewebsite` database is structured to support a wide range of e-commerce operations. Below is a detailed breakdown of the major table groups:
+![ERD Digram](./schema//diagram//Entity%20Relational%20Diagram.png)
+----
+![RD Digram](./schema//diagram/Relational%20Diagram.png)
 
 ### 6.1. Product and Related Tables
 

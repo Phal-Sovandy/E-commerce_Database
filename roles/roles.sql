@@ -84,7 +84,7 @@ GRANT SELECT ON products_with_no_orders TO sellers, customers, guests;
 -- ************************** ACTUAL USER ROLE ********************************
 -- ****************************************************************************
 CREATE ROLE big_admin LOGIN PASSWORD 'admin' IN ROLE administrators;
-GRANT CREATEROLE TO big_admin;
+ALTER ROLE big_admin CREATEROLE;
 CREATE ROLE sub_admin LOGIN PASSWORD 'admin' IN ROLE administrators;
 CREATE ROLE seller_sreng LOGIN PASSWORD 'password' IN ROLE sellers;
 CREATE ROLE customer_sith LOGIN PASSWORD 'password' IN ROLE customers;

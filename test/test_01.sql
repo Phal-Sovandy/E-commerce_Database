@@ -38,7 +38,7 @@ CALL place_order(1, 'A105EAKJYOP8OP', 1, 'Processing', 1);
 SELECT * FROM orders ORDER BY created_at DESC;
 
 -- Step 2: Add item
-CALL add_order_item(11, 'TEST123ASIN', 2);
+CALL add_order_item(1, 'TEST123ASIN', 2); -- Change order_id 
 
 -- Verify
 SELECT * FROM orders AS o INNER JOIN ordered_items AS oi ON o.order_id = oi.order_id;
@@ -70,7 +70,7 @@ SELECT * FROM sellers WHERE seller_id = 'S_1';
 -- ============================================================================
 -- Toggle Role
 -- ============================================================================
-CALL toggle_user_role_activation('customer1@example.com', 'customer');
+CALL toggle_user_role_activation('customer1@example.com', 'seller');
 
 -- Verify
 SELECT * FROM customer_detail WHERE email = 'customer1@example.com';
