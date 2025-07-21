@@ -70,16 +70,31 @@ def generate_random_datetime(start_date, end_date):
     return fake.date_time_between(start_date=start_date, end_date=end_date)
 
 def generate_jsonb_variations():
-    """Generates a simple JSONB structure for product variations."""
-    num_variations = random.randint(1, 3)
-    variations = {}
+    """Generates a list of dictionaries for product variations."""
+    num_variations = random.randint(1, 5)
+    variations = []
+    # Use a set to ensure unique ASINs within a single product's variations
+    generated_asins = set() 
     for _ in range(num_variations):
-        color = fake.color_name()
-        size = random.choice(['S', 'M', 'L', 'XL'])
-        variations[f'{color}-{size}'] = {
-            'price_modifier': round(random.uniform(-10.0, 10.0), 2),
-            'stock': random.randint(0, 200)
-        }
+        # Generate a unique ASIN for each variation
+        var_asin = generate_asin()
+        while var_asin in generated_asins:
+            var_asin = generate_asin()
+        generated_asins.add(var_asin)
+
+        # Generate a descriptive name for the variation
+        name_parts = [
+            fake.word().capitalize(),
+            random.choice(['Color', 'Size', 'Style', 'Capacity']),
+            f"{random.randint(8, 20)} {random.choice(['Ounce', 'Liter', 'Pack'])}",
+            f"(Pack of {random.randint(1, 4)})"
+        ]
+        var_name = " ".join(name_parts)
+        
+        variations.append({
+            "asin": var_asin,
+            "name": var_name
+        })
     return json.dumps(variations)
 
 def generate_jsonb_subcategory_rank():
@@ -129,6 +144,7 @@ def generate_insert_statement(table_name, columns, values):
         elif isinstance(v, date):
             formatted_values.append(f"'{v.strftime('%Y-%m-%d')}'")
         elif isinstance(v, str):
+            # Escape single quotes for SQL insertion
             formatted_values.append(f"'{v.replace("'", "''")}'")
         elif v is None:
             formatted_values.append('NULL')
@@ -286,11 +302,12 @@ def generate_data():
             sql_statements.append(generate_insert_statement('product_categories', ['asin', 'category_id'], [asin, category_id]))
 
     # 15. variations
+    # This section now uses the updated generate_jsonb_variations function
     for product in products_data:
-        if random.random() < 0.3:
+        if random.random() < 0.3: # ~30% of products will have variations
             asin = product['asin']
-            variations = generate_jsonb_variations()
-            sql_statements.append(generate_insert_statement('variations', ['asin', 'variations'], [asin, variations]))
+            variations_json = generate_jsonb_variations()
+            sql_statements.append(generate_insert_statement('variations', ['asin', 'variations'], [asin, variations_json]))
 
     # 16. product_sellers - now each product has exactly one seller
     for product in products_data:
@@ -367,7 +384,8 @@ def generate_data():
     for i in range(NUM_ORDERS):
         order_id = i + 1
         customer_id = random.choice(customers_data)['customer_id']
-        product = random.choice(products_data)
+        # Ensure a product with an assigned seller exists for the order
+        product = random.choice([p for p in products_data if p['seller_id'] is not None])
         seller_id = product['seller_id']
         delivery_id = random.choice(delivery_options_data)['delivery_id']
         created_at_dt = generate_random_datetime(datetime(2023, 1, 1), datetime.now())
