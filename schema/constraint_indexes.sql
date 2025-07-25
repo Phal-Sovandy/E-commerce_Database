@@ -40,7 +40,7 @@ ALTER TABLE orders ADD FOREIGN KEY (customer_id) REFERENCES customers(customer_i
 ALTER TABLE orders ADD FOREIGN KEY (seller_id) REFERENCES sellers(seller_id) ON DELETE SET NULL;
 ALTER TABLE orders ADD FOREIGN KEY (delivery_id) REFERENCES delivery_options(delivery_id) ON DELETE SET NULL;
 ALTER TABLE ordered_items ADD FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE;
-ALTER TABLE ordered_items ADD FOREIGN KEY (asin) REFERENCES products(asin) ON DELETE SET NULL;
+ALTER TABLE ordered_items ADD FOREIGN KEY (asin) REFERENCES products(asin) ON DELETE CASCADE;
 
 -- wishlists, wishlist_items
 ALTER TABLE wishlists ADD FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE;
